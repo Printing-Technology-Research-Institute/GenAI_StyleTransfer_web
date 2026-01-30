@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 風格轉換</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #4c1d95 50%, #5b21b6 75%, #6d28d9 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(147, 51, 234, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 40px rgba(147, 51, 234, 0.5);
+        }
+
+        .header p {
+            color: #e0e7ff;
+            font-size: 1.1em;
+        }
+
+        /* 頁籤樣式 */
+        .tabs {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px 16px 0 0;
+            padding: 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: none;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .tab-button.active {
+            color: #9333ea;
+            background: white;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #9333ea, #3b82f6);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .api-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 16px 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: none;
+        }
+
+        .api-section.no-tabs {
+            border-radius: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .api-section label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .api-section input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #e0e7ff, #c7d2fe);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .api-section input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #9333ea, #3b82f6);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(147, 51, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .api-section input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.6);
+        }
+
+        .api-section input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #9333ea, #3b82f6);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(147, 51, 234, 0.4);
+        }
+
+        .api-section h3 {
+            font-size: 1.2em;
+        }
+
+        details summary {
+            list-style: none;
+            padding: 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: #374151;
+            padding: 10px 0;
+        }
+
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details[open] summary {
+            margin-bottom: 15px;
+        }
+
+        .api-section select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+        }
+
+        .api-section select:focus {
+            outline: none;
+            border-color: #9333ea;
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+        }
+
+        .api-section select:hover {
+            border-color: #9333ea;
+        }
+
+        .api-section input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .api-section input:focus {
+            outline: none;
+            border-color: #9333ea;
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+        }
+
+        .api-section textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+            min-height: 80px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .api-section textarea:focus {
+            outline: none;
+            border-color: #9333ea;
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+        }
+
+        .api-section .hint {
+            color: #9ca3af;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .upload-section.single {
+            grid-template-columns: 1fr;
+        }
+
+        .upload-box {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-height: 300px;
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-box:hover {
+            border-color: #9333ea;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(147, 51, 234, 0.3);
+        }
+
+        .upload-box.has-image {
+            border-color: #9333ea;
+            padding: 0;
+            border-style: solid;
+        }
+
+        .upload-box.has-image:hover {
+            opacity: 0.9;
+        }
+
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s;
+        }
+
+        .upload-box.has-image .upload-content {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #9333ea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #6b7280;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #9ca3af;
+            font-size: 0.9em;
+        }
+
+        .preview-image {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+
+        .upload-box.has-image .preview-image {
+            display: block;
+        }
+
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .parameter-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .parameter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .parameter-value {
+            font-weight: 600;
+            color: #9333ea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #9333ea, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(147, 51, 234, 0.6);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .submit-btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-section h2 {
+            color: #374151;
+            margin-bottom: 20px;
+        }
+
+        .result-image {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 4px solid #dc2626;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        /* 風格轉換左右分欄 */
+        .style-transfer-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .style-left {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .style-right {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 500px;
+            overflow: auto;
+        }
+
+        .style-result-placeholder {
+            color: #9ca3af;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .style-result-placeholder .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .style-result-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .style-result-container.show {
+            display: flex;
+        }
+
+        .style-result-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            object-fit: contain;
+        }
+
+        .upload-box-small {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-box-small:hover {
+            border-color: #9333ea;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(147, 51, 234, 0.3);
+        }
+
+        .upload-box-small.has-image {
+            border-color: #9333ea;
+            padding: 0;
+            border-style: solid;
+        }
+
+        .upload-box-small.has-image:hover {
+            opacity: 0.9;
+        }
+
+        .upload-box-small .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s;
+        }
+
+        .upload-box-small.has-image .upload-content {
+            display: none;
+        }
+
+        .upload-box-small .upload-icon {
+            font-size: 2em;
+            color: #9333ea;
+            margin-bottom: 10px;
+        }
+
+        .upload-box-small .upload-text {
+            color: #6b7280;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .upload-box-small .upload-hint {
+            color: #9ca3af;
+            font-size: 0.85em;
+        }
+
+        .upload-box-small .preview-image {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 14px;
+        }
+
+        .upload-box-small.has-image .preview-image {
+            display: block;
+        }
+
+        /* 素描風格左右分欄 */
+        .sketch-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .sketch-left, .sketch-right {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sketch-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 500px;
+            overflow: auto;
+        }
+
+        .sketch-result-placeholder {
+            color: #9ca3af;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .sketch-result-placeholder .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .sketch-result-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .sketch-result-container.show {
+            display: flex;
+        }
+
+        .sketch-result-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-template-columns: 1fr;
+            }
+
+            .parameter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .style-transfer-layout,
+            .sketch-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .style-left {
+                grid-template-rows: auto auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 AI 風格轉換</h1>
+            <p>使用 AI 將您的照片轉換成藝術作品</p>
+        </div>
+
+        <div class="api-section no-tabs">
+            <label for="apiUrl">ComfyUI API URL</label>
+            <input type="text" id="apiUrl" placeholder="http://127.0.0.1:8188">
+            <div class="hint">請輸入 ComfyUI 伺服器地址</div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <!-- 頁籤 -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('styleTransfer')">
+                🎨 風格轉換
+            </button>
+            <button class="tab-button" onclick="switchTab('sketch')">
+                ✏️ 素描風格
+            </button>
+            <button class="tab-button" onclick="switchTab('anime')">
+                🎭 圖片動漫化
+            </button>
+        </div>
+
+        <!-- 頁籤1: 風格轉換 -->
+        <div id="styleTransfer" class="tab-content active">
+            <!-- 上方：圖片上傳和結果 -->
+            <div class="style-transfer-layout">
+                <!-- 左側：兩張上傳圖片 -->
+                <div class="style-left">
+                    <!-- 內容圖片 -->
+                    <div class="upload-box-small" id="contentUpload" onclick="document.getElementById('contentInput').click()">
+                        <div class="upload-content">
+                            <div class="upload-icon">📷</div>
+                            <div class="upload-text">內容圖片</div>
+                            <div class="upload-hint">點擊上傳</div>
+                        </div>
+                        <input type="file" id="contentInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event, 'content')">
+                        <img id="contentPreview" class="preview-image">
+                    </div>
+
+                    <!-- 風格圖片 -->
+                    <div class="upload-box-small" id="styleUpload" onclick="document.getElementById('styleInput').click()">
+                        <div class="upload-content">
+                            <div class="upload-icon">🎨</div>
+                            <div class="upload-text">風格圖片</div>
+                            <div class="upload-hint">點擊上傳</div>
+                        </div>
+                        <input type="file" id="styleInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event, 'style')">
+                        <img id="stylePreview" class="preview-image">
+                    </div>
+                </div>
+
+                <!-- 右側：結果顯示 -->
+                <div class="style-right">
+                    <div class="style-result-placeholder" id="stylePlaceholder">
+                        <div class="icon">🖼️</div>
+                        <div>轉換結果將顯示在這裡</div>
+                    </div>
+                    
+                    <div class="style-result-container" id="styleResultContainer">
+                        <h3 style="margin-bottom: 20px; color: #374151;">✨ 轉換結果</h3>
+                        <img id="resultImage" class="style-result-image" alt="Result">
+                        <button class="download-btn" onclick="downloadResult()">
+                            ⬇️ 下載圖片
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 下方：參數設定 -->
+            <div class="api-section">
+                <button class="submit-btn" id="submitBtn" onclick="processStyleTransfer()" style="margin-top: 20px;">
+                    開始轉換風格
+                </button>
+                <br><br>
+                <h3 style="margin-bottom: 20px;">⚙️ 參數設定</h3>
+                
+                <!-- Florence2 選項 -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="useFlorence2" onchange="togglePromptInput()" checked >
+                    <label for="useFlorence2">
+                        <strong>使用 Florence2 自動生成描述</strong>
+                        <span class="info-badge">AI 分析</span>
+                        <div class="hint" style="margin-top: 5px;">AI 會自動分析內容圖片並生成描述（需要安裝 Florence2 相關節點）</div>
+                    </label>
+                </div>
+
+                <!-- 手動提示詞輸入 -->
+                <div id="manualPromptSection" style="margin-top: 15px;">
+                    <label for="manualPrompt">提示詞 (Prompt)</label>
+                    <textarea id="manualPrompt" placeholder="描述您想要的畫面，例如：a beautiful landscape, oil painting style"></textarea>
+                    <div class="hint">描述內容圖片的內容，留空則使用空提示詞</div>
+                </div>
+                <details style="margin-top: 20px;">
+                    <summary>進階設定 ▼</summary>
+                <!-- 常用參數 -->
+                <div class="parameter-grid" style="margin-top: 20px;">
+                    <div class="parameter-item">
+                        <div class="parameter-header">
+                            <label>生成步數 (Steps)</label>
+                            <span class="parameter-value" id="stepsValue">30</span>
+                        </div>
+                        <input type="range" id="steps" min="10" max="50" value="30" step="1" oninput="updateValue('steps')">
+                        <div class="hint">步數越多，品質越好但速度越慢</div>
+                    </div>
+
+                    <div class="parameter-item">
+                        <div class="parameter-header">
+                            <label>降噪強度 (Denoise)</label>
+                            <span class="parameter-value" id="denoiseValue">0.75</span>
+                        </div>
+                        <input type="range" id="denoise" min="0" max="1" value="0.75" step="0.05" oninput="updateValue('denoise')">
+                        <div class="hint">圖像重建程度，越高越接近風格圖</div>
+                    </div>
+                </div>
+
+                
+
+                    <div class="parameter-grid" style="margin-top: 15px;">
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label>CFG Scale</label>
+                                <span class="parameter-value" id="cfgValue">6.5</span>
+                            </div>
+                            <input type="range" id="cfg" min="1" max="15" value="6.5" step="0.5" oninput="updateValue('cfg')">
+                            <div class="hint">控制圖像與提示詞的貼合度</div>
+                        </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label>圖片解析度</label>
+                                <span class="parameter-value" id="resolutionValue">512</span>
+                            </div>
+                            <input type="range" id="resolution" min="256" max="1024" value="512" step="128" oninput="updateValue('resolution')">
+                            <div class="hint">處理圖片的解析度</div>
+                        </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label>線條強度 (Lineart)</label>
+                                <span class="parameter-value" id="lineartStrengthValue">0.8</span>
+                            </div>
+                            <input type="range" id="lineartStrength" min="0" max="1" value="0.8" step="0.1" oninput="updateValue('lineartStrength')">
+                            <div class="hint">保留原圖線條的程度</div>
+                        </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label>深度強度 (Depth)</label>
+                                <span class="parameter-value" id="depthStrengthValue">0.6</span>
+                            </div>
+                            <input type="range" id="depthStrength" min="0" max="1" value="0.6" step="0.1" oninput="updateValue('depthStrength')">
+                            <div class="hint">保留原圖深度資訊的程度</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <label>模型選擇</label>
+                        <select id="modelType">
+                            <option value="dreamshaperXL_lightningDPMSDE.safetensors">DreamShaper XL Lightning</option>
+                            <option value="sd_xl_base_1.0.safetensors">Stable Diffusion XL Base</option>
+                        </select>
+                        <div class="hint">選擇使用的 AI 模型</div>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <label>ControlNet - Lineart 模型</label>
+                        <select id="lineartModel">
+                            <option value="t2i-adapter_diffusers_xl_lineart.safetensors">T2I Adapter XL Lineart</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <label>ControlNet - Depth 模型</label>
+                        <select id="depthModel">
+                            <option value="sd_xl_base_control-lora-depth-rank256.safetensors">SD XL Depth LoRA Rank256</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <label>負面提示詞</label>
+                        <input type="text" id="negativePrompt" value="blurry, noisy, messy, lowres, jpeg, artifacts, ill, distorted, malformed">
+                        <div class="hint">想要避免的元素</div>
+                    </div>
+                </details>
+
+                
+            </div>
+        </div>
+
+        <!-- 頁籤2: 素描風格 -->
+        <div id="sketch" class="tab-content">
+            <div class="sketch-layout">
+                <!-- 左側：上傳和參數 -->
+                <div class="sketch-left">
+                    <h3 style="margin-bottom: 20px;">📤 上傳圖片</h3>
+                    
+                    <div class="upload-box" id="sketchUpload" onclick="document.getElementById('sketchInput').click()" style="margin-bottom: 30px;">
+                        <div class="upload-content">
+                            <div class="upload-icon">🖼️</div>
+                            <div class="upload-text">上傳圖片</div>
+                            <div class="upload-hint">點擊選擇或拖放圖片</div>
+                        </div>
+                        <input type="file" id="sketchInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event, 'sketch')">
+                        <img id="sketchPreview" class="preview-image">
+                    </div>
+                    <button class="submit-btn" id="sketchSubmitBtn" onclick="processSketch()" style="margin-top: 20px;">
+                        生成素描風格
+                    </button>
+                    <h3 style="margin-bottom: 20px;">⚙️ 參數設定</h3>
+                    <details style="margin-top: 20px;">
+                        <summary>進階設定 ▼</summary>
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label>生成步數</label>
+                                <span class="parameter-value" id="sketchStepsValue">25</span>
+                            </div>
+                            <input type="range" id="sketchSteps" min="10" max="50" value="25" step="1" oninput="updateValue('sketchSteps')">
+                            <div class="hint">步數越多，品質越好</div>
+                        </div>
+
+                        <div class="parameter-item">
+                            <div class="parameter-header">
+                                <label>CFG Scale</label>
+                                <span class="parameter-value" id="sketchCfgValue">5</span>
+                            </div>
+                            <input type="range" id="sketchCfg" min="1" max="15" value="5" step="0.5" oninput="updateValue('sketchCfg')">
+                            <div class="hint">風格貼合度</div>
+                        </div>
+                        <div class="parameter-grid" style="margin-top: 15px;">
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>線條強度</label>
+                                    <span class="parameter-value" id="sketchLineartStrengthValue">0.8</span>
+                                </div>
+                                <input type="range" id="sketchLineartStrength" min="0" max="1" value="0.8" step="0.1" oninput="updateValue('sketchLineartStrength')">
+                                <div class="hint">ControlNet 線條控制強度</div>
+                            </div>
+
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>圖片尺寸</label>
+                                    <span class="parameter-value" id="sketchSizeValue">1024</span>
+                                </div>
+                                <input type="range" id="sketchSize" min="512" max="2048" value="1024" step="256" oninput="updateValue('sketchSize')">
+                                <div class="hint">輸出圖片的尺寸</div>
+                            </div>
+
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>Lineart 解析度</label>
+                                    <span class="parameter-value" id="sketchLineartResValue">768</span>
+                                </div>
+                                <input type="range" id="sketchLineartRes" min="256" max="1024" value="768" step="128" oninput="updateValue('sketchLineartRes')">
+                                <div class="hint">線條處理的解析度</div>
+                            </div>
+
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>LoRA 強度</label>
+                                    <span class="parameter-value" id="sketchLoraStrengthValue">0.6</span>
+                                </div>
+                                <input type="range" id="sketchLoraStrength" min="0" max="1" value="0.6" step="0.1" oninput="updateValue('sketchLoraStrength')">
+                                <div class="hint">Lineart LoRA 模型強度</div>
+                            </div>
+                        </div>
+                    </details>
+
+                    
+                </div>
+
+                <!-- 右側：結果顯示 -->
+                <div class="sketch-right">
+                    <div class="sketch-result-placeholder" id="sketchPlaceholder">
+                        <div class="icon">✏️</div>
+                        <div>素描結果將顯示在這裡</div>
+                    </div>
+                    
+                    <div class="sketch-result-container" id="sketchResultContainer">
+                        <h3 style="margin-bottom: 20px; color: #374151;">✨ 素描結果</h3>
+                        <img id="sketchResultImage" class="sketch-result-image" alt="Sketch Result">
+                        <button class="download-btn" onclick="downloadSketchResult()">
+                            ⬇️ 下載圖片
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 頁籤3: 圖片動漫化 -->
+        <div id="anime" class="tab-content">
+            <div class="sketch-layout">
+                <!-- 左側：上傳和參數 -->
+                <div class="sketch-left">
+                    <h3 style="margin-bottom: 20px;">📤 上傳圖片</h3>
+                    
+                    <div class="upload-box" id="animeUpload" onclick="document.getElementById('animeInput').click()" style="margin-bottom: 30px;">
+                        <div class="upload-content">
+                            <div class="upload-icon">🖼️</div>
+                            <div class="upload-text">上傳圖片</div>
+                            <div class="upload-hint">點擊選擇或拖放圖片</div>
+                        </div>
+                        <input type="file" id="animeInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event, 'anime')">
+                        <img id="animePreview" class="preview-image">
+                    </div>
+
+                    <h3 style="margin-bottom: 20px;">⚙️ 參數設定</h3>
+
+                    <details style="margin-top: 20px;">
+                        <summary>進階設定 ▼</summary>
+
+                            <div class="parameter-grid" style="margin-top: 15px;">
+                                <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>生成步數</label>
+                                    <span class="parameter-value" id="animeStepsValue">30</span>
+                                </div>
+                                <input type="range" id="animeSteps" min="10" max="50" value="30" step="1" oninput="updateValue('animeSteps')">
+                                <div class="hint">步數越多，品質越好</div>
+                            </div>
+
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>CFG Scale</label>
+                                    <span class="parameter-value" id="animeCfgValue">3</span>
+                                </div>
+                                <input type="range" id="animeCfg" min="1" max="15" value="3" step="0.5" oninput="updateValue('animeCfg')">
+                                <div class="hint">風格貼合度</div>
+                            </div>
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>線條強度</label>
+                                    <span class="parameter-value" id="animeLineartStrengthValue">0.8</span>
+                                </div>
+                                <input type="range" id="animeLineartStrength" min="0" max="1" value="0.8" step="0.1" oninput="updateValue('animeLineartStrength')">
+                                <div class="hint">ControlNet 線條控制強度</div>
+                            </div>
+
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>Lineart 解析度</label>
+                                    <span class="parameter-value" id="animeLineartResValue">1024</span>
+                                </div>
+                                <input type="range" id="animeLineartRes" min="512" max="2048" value="1024" step="256" oninput="updateValue('animeLineartRes')">
+                                <div class="hint">線條處理的解析度</div>
+                            </div>
+
+                            <div class="parameter-item">
+                                <div class="parameter-header">
+                                    <label>LoRA 強度</label>
+                                    <span class="parameter-value" id="animeLoraStrengthValue">1</span>
+                                </div>
+                                <input type="range" id="animeLoraStrength" min="0" max="1" value="1" step="0.1" oninput="updateValue('animeLoraStrength')">
+                                <div class="hint">AnimeAnything LoRA 強度</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 15px;">
+                            <label>負面提示詞補充</label>
+                            <input type="text" id="animeNegativeExtra" value="nsfw">
+                            <div class="hint">額外的負面提示詞（自動附加基礎負面詞）</div>
+                        </div>
+                    </details>
+
+                    <button class="submit-btn" id="animeSubmitBtn" onclick="processAnime()" style="margin-top: 20px;">
+                        生成動漫風格
+                    </button>
+                </div>
+
+                <!-- 右側：結果顯示 -->
+                <div class="sketch-right">
+                    <div class="sketch-result-placeholder" id="animePlaceholder">
+                        <div class="icon">🎭</div>
+                        <div>動漫化結果將顯示在這裡</div>
+                    </div>
+                    
+                    <div class="sketch-result-container" id="animeResultContainer">
+                        <h3 style="margin-bottom: 20px; color: #374151;">✨ 動漫化結果</h3>
+                        <img id="animeResultImage" class="sketch-result-image" alt="Anime Result">
+                        <button class="download-btn" onclick="downloadAnimeResult()">
+                            ⬇️ 下載圖片
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全域變數
+        var contentFile = null;
+        var styleFile = null;
+        var sketchFile = null;
+        var animeFile = null;
+        var resultBlob = null;
+        var sketchResultBlob = null;
+        var animeResultBlob = null;
+
+        // 頁籤切換
+        function switchTab(tabName) {
+            // 隱藏所有頁籤內容
+            var tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+
+            // 移除所有按鈕的 active 狀態
+            var buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+
+            // 顯示選中的頁籤
+            document.getElementById(tabName).classList.add('active');
+            
+            // 設置對應按鈕為 active
+            event.target.classList.add('active');
+
+            // 隱藏錯誤訊息
+            hideError();
+        }
+
+        function togglePromptInput() {
+            var useFlorence2 = document.getElementById('useFlorence2').checked;
+            var manualPromptSection = document.getElementById('manualPromptSection');
+            
+            if (useFlorence2) {
+                manualPromptSection.style.display = 'none';
+            } else {
+                manualPromptSection.style.display = 'block';
+            }
+        }
+
+        function handleFileSelect(event, type) {
+            var file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    if (type === 'content') {
+                        contentFile = file;
+                        document.getElementById('contentPreview').src = e.target.result;
+                        document.getElementById('contentUpload').classList.add('has-image');
+                    } else if (type === 'style') {
+                        styleFile = file;
+                        document.getElementById('stylePreview').src = e.target.result;
+                        document.getElementById('styleUpload').classList.add('has-image');
+                    } else if (type === 'sketch') {
+                        sketchFile = file;
+                        document.getElementById('sketchPreview').src = e.target.result;
+                        document.getElementById('sketchUpload').classList.add('has-image');
+                    } else if (type === 'anime') {
+                        animeFile = file;
+                        document.getElementById('animePreview').src = e.target.result;
+                        document.getElementById('animeUpload').classList.add('has-image');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateValue(id) {
+            var element = document.getElementById(id);
+            var valueElement = document.getElementById(id + 'Value');
+            valueElement.textContent = element.value;
+        }
+
+        function showError(message) {
+            var errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function hideError() {
+            var errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.remove('show');
+        }
+
+        // 風格轉換處理
+        async function processStyleTransfer() {
+            var apiUrl = document.getElementById('apiUrl').value.trim();
+            var submitBtn = document.getElementById('submitBtn');
+
+            if (!contentFile || !styleFile) {
+                showError('請上傳內容圖片和風格圖片');
+                return;
+            }
+
+            if (!apiUrl) {
+                apiUrl = 'http://127.0.0.1:8188';
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading-spinner"></span>處理中...';
+            hideError();
+            document.getElementById('styleResultContainer').classList.remove('show');
+            document.getElementById('stylePlaceholder').style.display = 'block';
+
+            try {
+                var baseUrl = apiUrl.replace(/\/$/, '');
+                
+                // Upload images
+                var contentFormData = new FormData();
+                contentFormData.append('image', contentFile);
+                contentFormData.append('overwrite', 'true');
+                
+                var contentUploadRes = await fetch(baseUrl + '/upload/image', {
+                    method: 'POST',
+                    body: contentFormData
+                });
+                
+                if (!contentUploadRes.ok) {
+                    throw new Error('上傳內容圖片失敗: ' + contentUploadRes.status);
+                }
+                
+                var contentData = await contentUploadRes.json();
+                var contentImageName = contentData.name;
+                
+                var styleFormData = new FormData();
+                styleFormData.append('image', styleFile);
+                styleFormData.append('overwrite', 'true');
+                
+                var styleUploadRes = await fetch(baseUrl + '/upload/image', {
+                    method: 'POST',
+                    body: styleFormData
+                });
+                
+                if (!styleUploadRes.ok) {
+                    throw new Error('上傳風格圖片失敗: ' + styleUploadRes.status);
+                }
+                
+                var styleData = await styleUploadRes.json();
+                var styleImageName = styleData.name;
+                
+                // Get parameters
+                var useFlorence2 = document.getElementById('useFlorence2').checked;
+                var manualPrompt = document.getElementById('manualPrompt').value.trim();
+                var steps = parseInt(document.getElementById('steps').value);
+                var cfg = parseFloat(document.getElementById('cfg').value);
+                var lineartStrength = parseFloat(document.getElementById('lineartStrength').value);
+                var depthStrength = parseFloat(document.getElementById('depthStrength').value);
+                var denoise = parseFloat(document.getElementById('denoise').value);
+                var resolution = parseInt(document.getElementById('resolution').value);
+                var modelType = document.getElementById('modelType').value;
+                var lineartModel = document.getElementById('lineartModel').value;
+                var depthModel = document.getElementById('depthModel').value;
+                var negativePrompt = document.getElementById('negativePrompt').value;
+                var randomSeed = Math.floor(Math.random() * 1000000000000);
+                
+                var workflow;
+                
+                if (useFlorence2) {
+                    // Florence2 workflow (same as before)
+                    workflow = {
+                        "12": {"inputs": {"image": contentImageName}, "class_type": "LoadImage"},
+                        "17": {"inputs": {"image": styleImageName}, "class_type": "LoadImage"},
+                        "48": {"inputs": {"any_value": ["68", 2]}, "class_type": "Show any to JSON [Crystools]"},
+                        "58": {"inputs": {"filename_prefix": "ComfyUI", "images": ["74", 0]}, "class_type": "SaveImage"},
+                        "59": {"inputs": {"control_net_name": lineartModel}, "class_type": "ControlNetLoader"},
+                        "60": {"inputs": {"control_net_name": depthModel}, "class_type": "ControlNetLoader"},
+                        "61": {"inputs": {"ckpt_name": modelType}, "class_type": "CheckpointLoaderSimple"},
+                        "62": {"inputs": {"model": "MiaoshouAI/Florence-2-base-PromptGen-v1.5", "precision": "fp16", "attention": "sdpa", "convert_to_safetensors": false}, "class_type": "DownloadAndLoadFlorence2Model"},
+                        "63": {"inputs": {"coarse": "disable", "resolution": resolution, "image": ["12", 0]}, "class_type": "LineArtPreprocessor"},
+                        "64": {"inputs": {"ckpt_name": "depth_anything_vitl14.pth", "resolution": resolution, "image": ["12", 0]}, "class_type": "DepthAnythingPreprocessor"},
+                        "65": {"inputs": {"preset": "PLUS (high strength)", "model": ["61", 0]}, "class_type": "IPAdapterUnifiedLoader"},
+                        "66": {"inputs": {"text": negativePrompt, "clip": ["61", 1]}, "class_type": "CLIPTextEncode"},
+                        "67": {"inputs": {"pixels": ["12", 0], "vae": ["61", 2]}, "class_type": "VAEEncode"},
+                        "68": {"inputs": {"text_input": "", "task": "more_detailed_caption", "fill_mask": true, "keep_model_loaded": false, "max_new_tokens": 998, "num_beams": 3, "do_sample": true, "output_mask_select": "", "seed": randomSeed, "image": ["12", 0], "florence2_model": ["62", 0]}, "class_type": "Florence2Run"},
+                        "69": {"inputs": {"weight": 1, "weight_type": "style transfer", "combine_embeds": "concat", "start_at": 0, "end_at": 1, "embeds_scaling": "V only", "model": ["65", 0], "ipadapter": ["65", 1], "image": ["17", 0]}, "class_type": "IPAdapterAdvanced"},
+                        "70": {"inputs": {"text": ["48", 0], "clip": ["61", 1]}, "class_type": "CLIPTextEncode"},
+                        "71": {"inputs": {"strength": lineartStrength, "start_percent": 0, "end_percent": 1, "positive": ["70", 0], "negative": ["66", 0], "control_net": ["59", 0], "image": ["63", 0]}, "class_type": "ControlNetApplyAdvanced"},
+                        "72": {"inputs": {"strength": depthStrength, "start_percent": 0, "end_percent": 1, "positive": ["71", 0], "negative": ["71", 1], "control_net": ["60", 0], "image": ["64", 0]}, "class_type": "ControlNetApplyAdvanced"},
+                        "73": {"inputs": {"seed": randomSeed, "steps": steps, "cfg": cfg, "sampler_name": "dpmpp_2m", "scheduler": "karras", "denoise": denoise, "model": ["69", 0], "positive": ["72", 0], "negative": ["72", 1], "latent_image": ["67", 0]}, "class_type": "KSampler"},
+                        "74": {"inputs": {"samples": ["73", 0], "vae": ["61", 2]}, "class_type": "VAEDecode"}
+                    };
+                } else {
+                    // Simplified workflow
+                    workflow = {
+                        "12": {"inputs": {"image": contentImageName}, "class_type": "LoadImage"},
+                        "17": {"inputs": {"image": styleImageName}, "class_type": "LoadImage"},
+                        "58": {"inputs": {"filename_prefix": "ComfyUI", "images": ["74", 0]}, "class_type": "SaveImage"},
+                        "59": {"inputs": {"control_net_name": lineartModel}, "class_type": "ControlNetLoader"},
+                        "60": {"inputs": {"control_net_name": depthModel}, "class_type": "ControlNetLoader"},
+                        "61": {"inputs": {"ckpt_name": modelType}, "class_type": "CheckpointLoaderSimple"},
+                        "63": {"inputs": {"coarse": "disable", "resolution": resolution, "image": ["12", 0]}, "class_type": "LineArtPreprocessor"},
+                        "64": {"inputs": {"ckpt_name": "depth_anything_vitl14.pth", "resolution": resolution, "image": ["12", 0]}, "class_type": "DepthAnythingPreprocessor"},
+                        "65": {"inputs": {"preset": "PLUS (high strength)", "model": ["61", 0]}, "class_type": "IPAdapterUnifiedLoader"},
+                        "66": {"inputs": {"text": negativePrompt, "clip": ["61", 1]}, "class_type": "CLIPTextEncode"},
+                        "67": {"inputs": {"pixels": ["12", 0], "vae": ["61", 2]}, "class_type": "VAEEncode"},
+                        "69": {"inputs": {"weight": 1, "weight_type": "style transfer", "combine_embeds": "concat", "start_at": 0, "end_at": 1, "embeds_scaling": "V only", "model": ["65", 0], "ipadapter": ["65", 1], "image": ["17", 0]}, "class_type": "IPAdapterAdvanced"},
+                        "70": {"inputs": {"text": manualPrompt, "clip": ["61", 1]}, "class_type": "CLIPTextEncode"},
+                        "71": {"inputs": {"strength": lineartStrength, "start_percent": 0, "end_percent": 1, "positive": ["70", 0], "negative": ["66", 0], "control_net": ["59", 0], "image": ["63", 0]}, "class_type": "ControlNetApplyAdvanced"},
+                        "72": {"inputs": {"strength": depthStrength, "start_percent": 0, "end_percent": 1, "positive": ["71", 0], "negative": ["71", 1], "control_net": ["60", 0], "image": ["64", 0]}, "class_type": "ControlNetApplyAdvanced"},
+                        "73": {"inputs": {"seed": randomSeed, "steps": steps, "cfg": cfg, "sampler_name": "dpmpp_2m", "scheduler": "karras", "denoise": denoise, "model": ["69", 0], "positive": ["72", 0], "negative": ["72", 1], "latent_image": ["67", 0]}, "class_type": "KSampler"},
+                        "74": {"inputs": {"samples": ["73", 0], "vae": ["61", 2]}, "class_type": "VAEDecode"}
+                    };
+                }
+                
+                // Queue prompt
+                var promptResponse = await fetch(baseUrl + '/prompt', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: workflow})
+                });
+                
+                if (!promptResponse.ok) {
+                    throw new Error('執行工作流程失敗: ' + promptResponse.status);
+                }
+                
+                var promptData = await promptResponse.json();
+                var promptId = promptData.prompt_id;
+                
+                // Poll for completion
+                submitBtn.innerHTML = '<span class="loading-spinner"></span>生成中，請稍候...';
+                var maxAttempts = useFlorence2 ? 120 : 60;
+                var attempt = 0;
+                
+                while (attempt < maxAttempts) {
+                    await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+                    
+                    var historyResponse = await fetch(baseUrl + '/history/' + promptId);
+                    var historyData = await historyResponse.json();
+                    
+                    if (historyData[promptId] && historyData[promptId].outputs) {
+                        var outputs = historyData[promptId].outputs;
+                        var imageInfo = null;
+                        
+                        if (outputs['58'] && outputs['58'].images && outputs['58'].images.length > 0) {
+                            imageInfo = outputs['58'].images[0];
+                        }
+                        
+                        if (imageInfo) {
+                            var imageUrl = baseUrl + '/view?filename=' + encodeURIComponent(imageInfo.filename) + '&subfolder=' + encodeURIComponent(imageInfo.subfolder || '') + '&type=' + encodeURIComponent(imageInfo.type || 'output');
+                            
+                            var imageResponse = await fetch(imageUrl);
+                            resultBlob = await imageResponse.blob();
+                            var resultUrl = URL.createObjectURL(resultBlob);
+                            
+                            document.getElementById('resultImage').src = resultUrl;
+                            document.getElementById('stylePlaceholder').style.display = 'none';
+                            document.getElementById('styleResultContainer').classList.add('show');
+                            break;
+                        }
+                    }
+                    
+                    attempt++;
+                }
+                
+                if (attempt >= maxAttempts) {
+                    throw new Error('處理超時，請稍後再試');
+                }
+
+            } catch (error) {
+                showError(error.message || '處理失敗，請檢查 API URL 和網路連線');
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '開始轉換風格';
+            }
+        }
+
+        // 素描風格處理
+        async function processSketch() {
+            var apiUrl = document.getElementById('apiUrl').value.trim();
+            var submitBtn = document.getElementById('sketchSubmitBtn');
+
+            if (!sketchFile) {
+                showError('請上傳圖片');
+                return;
+            }
+
+            if (!apiUrl) {
+                apiUrl = 'http://127.0.0.1:8188';
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading-spinner"></span>處理中...';
+            hideError();
+            document.getElementById('sketchResultContainer').classList.remove('show');
+            document.getElementById('sketchPlaceholder').style.display = 'block';
+
+            try {
+                var baseUrl = apiUrl.replace(/\/$/, '');
+                
+                // Upload image
+                var formData = new FormData();
+                formData.append('image', sketchFile);
+                formData.append('overwrite', 'true');
+                
+                var uploadRes = await fetch(baseUrl + '/upload/image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadRes.ok) {
+                    throw new Error('上傳圖片失敗: ' + uploadRes.status);
+                }
+                
+                var uploadData = await uploadRes.json();
+                var imageName = uploadData.name;
+                
+                // Get parameters
+                var steps = parseInt(document.getElementById('sketchSteps').value);
+                var cfg = parseFloat(document.getElementById('sketchCfg').value);
+                var lineartStrength = parseFloat(document.getElementById('sketchLineartStrength').value);
+                var size = parseInt(document.getElementById('sketchSize').value);
+                var lineartRes = parseInt(document.getElementById('sketchLineartRes').value);
+                var loraStrength = parseFloat(document.getElementById('sketchLoraStrength').value);
+                var randomSeed = Math.floor(Math.random() * 1000000000000);
+                
+                // Build workflow based on the JSON
+                var workflow = {
+                    "3": {
+                        "inputs": {
+                            "seed": randomSeed,
+                            "steps": steps,
+                            "cfg": cfg,
+                            "sampler_name": "dpmpp_2m_sde",
+                            "scheduler": "normal",
+                            "denoise": 1,
+                            "model": ["30", 0],
+                            "positive": ["18", 0],
+                            "negative": ["18", 1],
+                            "latent_image": ["5", 0]
+                        },
+                        "class_type": "KSampler"
+                    },
+                    "5": {
+                        "inputs": {
+                            "width": ["15", 1],
+                            "height": ["15", 2],
+                            "batch_size": 1
+                        },
+                        "class_type": "EmptyLatentImage"
+                    },
+                    "6": {
+                        "inputs": {
+                            "text": "pencil sketch,drawing ,mexxdrawing,mexxlineart,lineart,white theme,white background,illustration,black and white image, no text,no logo,no word,no font\n",
+                            "clip": ["45", 1]
+                        },
+                        "class_type": "CLIPTextEncode"
+                    },
+                    "8": {
+                        "inputs": {
+                            "samples": ["3", 0],
+                            "vae": ["45", 2]
+                        },
+                        "class_type": "VAEDecode"
+                    },
+                    "9": {
+                        "inputs": {
+                            "filename_prefix": "ComfyUI",
+                            "images": ["8", 0]
+                        },
+                        "class_type": "SaveImage"
+                    },
+                    "15": {
+                        "inputs": {
+                            "width": size,
+                            "height": size,
+                            "interpolation": "nearest",
+                            "method": "keep proportion",
+                            "condition": "always",
+                            "multiple_of": 0,
+                            "image": ["16", 0]
+                        },
+                        "class_type": "ImageResize+"
+                    },
+                    "16": {
+                        "inputs": {
+                            "image": imageName
+                        },
+                        "class_type": "LoadImage"
+                    },
+                    "18": {
+                        "inputs": {
+                            "strength": lineartStrength,
+                            "start_percent": 0,
+                            "end_percent": 1,
+                            "positive": ["6", 0],
+                            "negative": ["31", 0],
+                            "control_net": ["21", 0],
+                            "image": ["42", 0]
+                        },
+                        "class_type": "ControlNetApplyAdvanced"
+                    },
+                    "21": {
+                        "inputs": {
+                            "control_net_name": "control_v11p_sd15_lineart.pth"
+                        },
+                        "class_type": "ControlNetLoader"
+                    },
+                    "30": {
+                        "inputs": {
+                            "lora_name": "Lineart-v2.0.safetensors",
+                            "strength_model": loraStrength,
+                            "model": ["45", 0]
+                        },
+                        "class_type": "LoraLoaderModelOnly"
+                    },
+                    "31": {
+                        "inputs": {
+                            "text": "(nsfw:1.4),(two tails:1.3),FastNegativeV2,(bad-artist:1),(loli:1.2),(worst quality, low quality:1.4),(bad_prompt_version2:0.8),bad-hands-5,lowres,bad anatomy,bad hands,((text)),words, letters, numbers, font, typography,\nlogo,(watermark),error,missing fingers,extra digit,fewer digits,cropped,worst quality,low quality,normal quality,((username)),blurry,(extra limbs),bad-artist-anime,badhandv4,EasyNegative,ng_deepnegative_v1_75t,verybadimagenegative_v1.3,BadDream,(three hands:1.1),(three legs:1.1),(more than two hands:1.2),(more than two legs:1.2),nsfw,text,words,letters, numbers, font,typography,logo, brand, signature, caption,subtitle,label,annotation,watermark,stamp,symbol, icon, sign,handwritten text, printed text,color, (((colorful))), skin tone, warmtone, sepia,paper texture\n\n",
+                            "token_normalization": "none",
+                            "weight_interpretation": "A1111",
+                            "clip": ["45", 1]
+                        },
+                        "class_type": "BNK_CLIPTextEncodeAdvanced"
+                    },
+                    "42": {
+                        "inputs": {
+                            "coarse": "disable",
+                            "resolution": lineartRes,
+                            "image": ["15", 0]
+                        },
+                        "class_type": "LineArtPreprocessor"
+                    },
+                    "43": {
+                        "inputs": {
+                            "images": ["42", 0]
+                        },
+                        "class_type": "PreviewImage"
+                    },
+                    "45": {
+                        "inputs": {
+                            "ckpt_name": "lineart_2000_lora.safetensors"
+                        },
+                        "class_type": "CheckpointLoaderSimple"
+                    }
+                };
+                
+                // Queue prompt
+                var promptResponse = await fetch(baseUrl + '/prompt', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: workflow})
+                });
+                
+                if (!promptResponse.ok) {
+                    throw new Error('執行工作流程失敗: ' + promptResponse.status);
+                }
+                
+                var promptData = await promptResponse.json();
+                var promptId = promptData.prompt_id;
+                
+                // Poll for completion
+                submitBtn.innerHTML = '<span class="loading-spinner"></span>生成中，請稍候...';
+                var maxAttempts = 60;
+                var attempt = 0;
+                
+                while (attempt < maxAttempts) {
+                    await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+                    
+                    var historyResponse = await fetch(baseUrl + '/history/' + promptId);
+                    var historyData = await historyResponse.json();
+                    
+                    if (historyData[promptId] && historyData[promptId].outputs) {
+                        var outputs = historyData[promptId].outputs;
+                        var imageInfo = null;
+                        
+                        if (outputs['9'] && outputs['9'].images && outputs['9'].images.length > 0) {
+                            imageInfo = outputs['9'].images[0];
+                        }
+                        
+                        if (imageInfo) {
+                            var imageUrl = baseUrl + '/view?filename=' + encodeURIComponent(imageInfo.filename) + '&subfolder=' + encodeURIComponent(imageInfo.subfolder || '') + '&type=' + encodeURIComponent(imageInfo.type || 'output');
+                            
+                            var imageResponse = await fetch(imageUrl);
+                            sketchResultBlob = await imageResponse.blob();
+                            var resultUrl = URL.createObjectURL(sketchResultBlob);
+                            
+                            document.getElementById('sketchResultImage').src = resultUrl;
+                            document.getElementById('sketchPlaceholder').style.display = 'none';
+                            document.getElementById('sketchResultContainer').classList.add('show');
+                            break;
+                        }
+                    }
+                    
+                    attempt++;
+                }
+                
+                if (attempt >= maxAttempts) {
+                    throw new Error('處理超時，請稍後再試');
+                }
+
+            } catch (error) {
+                showError(error.message || '處理失敗，請檢查 API URL 和網路連線');
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '生成素描風格';
+            }
+        }
+
+        function downloadResult() {
+            if (resultBlob) {
+                var url = URL.createObjectURL(resultBlob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'style_transfer_' + Date.now() + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function downloadSketchResult() {
+            if (sketchResultBlob) {
+                var url = URL.createObjectURL(sketchResultBlob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'sketch_' + Date.now() + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // 動漫化處理
+        async function processAnime() {
+            var apiUrl = document.getElementById('apiUrl').value.trim();
+            var submitBtn = document.getElementById('animeSubmitBtn');
+
+            if (!animeFile) {
+                showError('請上傳圖片');
+                return;
+            }
+
+            if (!apiUrl) {
+                apiUrl = 'http://127.0.0.1:8188';
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading-spinner"></span>處理中...';
+            hideError();
+            document.getElementById('animeResultContainer').classList.remove('show');
+            document.getElementById('animePlaceholder').style.display = 'block';
+
+            try {
+                var baseUrl = apiUrl.replace(/\/$/, '');
+                
+                // Upload image
+                var formData = new FormData();
+                formData.append('image', animeFile);
+                formData.append('overwrite', 'true');
+                
+                var uploadRes = await fetch(baseUrl + '/upload/image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadRes.ok) {
+                    throw new Error('上傳圖片失敗: ' + uploadRes.status);
+                }
+                
+                var uploadData = await uploadRes.json();
+                var imageName = uploadData.name;
+                
+                // Get parameters
+                var steps = parseInt(document.getElementById('animeSteps').value);
+                var cfg = parseFloat(document.getElementById('animeCfg').value);
+                var lineartStrength = parseFloat(document.getElementById('animeLineartStrength').value);
+                var lineartRes = parseInt(document.getElementById('animeLineartRes').value);
+                var loraStrength = parseFloat(document.getElementById('animeLoraStrength').value);
+                var negativeExtra = document.getElementById('animeNegativeExtra').value;
+                var randomSeed = Math.floor(Math.random() * 1000000000000);
+                
+                // Build workflow based on the JSON
+                var workflow = {
+                    "55": {
+                        "inputs": {
+                            "text": ["58", 0],
+                            "clip": ["67", 1]
+                        },
+                        "class_type": "CLIPTextEncode"
+                    },
+                    "56": {
+                        "inputs": {
+                            "samples": ["69", 0],
+                            "vae": ["66", 2]
+                        },
+                        "class_type": "VAEDecode"
+                    },
+                    "57": {
+                        "inputs": {
+                            "text": ["61", 0],
+                            "clip": ["67", 1]
+                        },
+                        "class_type": "CLIPTextEncode"
+                    },
+                    "58": {
+                        "inputs": {
+                            "delimiter": ", ",
+                            "clean_whitespace": "true",
+                            "text_a": ["95", 0],
+                            "text_b": ["70", 1]
+                        },
+                        "class_type": "Text Concatenate"
+                    },
+                    "59": {
+                        "inputs": {
+                            "strength": lineartStrength,
+                            "start_percent": 0,
+                            "end_percent": 1,
+                            "positive": ["57", 0],
+                            "negative": ["55", 0],
+                            "control_net": ["68", 0],
+                            "image": ["62", 0]
+                        },
+                        "class_type": "ControlNetApplyAdvanced"
+                    },
+                    "61": {
+                        "inputs": {
+                            "delimiter": ", ",
+                            "clean_whitespace": "true",
+                            "text_a": ["65", 0],
+                            "text_b": ["70", 0]
+                        },
+                        "class_type": "Text Concatenate"
+                    },
+                    "62": {
+                        "inputs": {
+                            "coarse": "disable",
+                            "resolution": lineartRes,
+                            "image": ["74", 0]
+                        },
+                        "class_type": "LineArtPreprocessor"
+                    },
+                    "63": {
+                        "inputs": {
+                            "version": "base-PromptGen"
+                        },
+                        "class_type": "LayerMask: LoadFlorence2Model"
+                    },
+                    "64": {
+                        "inputs": {
+                            "pixels": ["74", 0],
+                            "vae": ["66", 2]
+                        },
+                        "class_type": "VAEEncode"
+                    },
+                    "65": {
+                        "inputs": {
+                            "task": "more detailed caption",
+                            "text_input": "",
+                            "max_new_tokens": 1024,
+                            "num_beams": 3,
+                            "do_sample": false,
+                            "fill_mask": false,
+                            "florence2_model": ["63", 0],
+                            "image": ["74", 0]
+                        },
+                        "class_type": "LayerUtility: Florence2Image2Prompt"
+                    },
+                    "66": {
+                        "inputs": {
+                            "ckpt_name": "epicphotogasm_lastUnicorn.safetensors"
+                        },
+                        "class_type": "CheckpointLoaderSimple"
+                    },
+                    "67": {
+                        "inputs": {
+                            "lora_name": "AnimeAnything_SD15.safetensors",
+                            "strength_model": loraStrength,
+                            "strength_clip": loraStrength,
+                            "model": ["66", 0],
+                            "clip": ["66", 1]
+                        },
+                        "class_type": "LoraLoader"
+                    },
+                    "68": {
+                        "inputs": {
+                            "control_net_name": "control_v11p_sd15_lineart.pth"
+                        },
+                        "class_type": "ControlNetLoader"
+                    },
+                    "69": {
+                        "inputs": {
+                            "seed": randomSeed,
+                            "steps": steps,
+                            "cfg": cfg,
+                            "sampler_name": "dpmpp_2m_sde",
+                            "scheduler": "karras",
+                            "denoise": 1,
+                            "model": ["67", 0],
+                            "positive": ["59", 0],
+                            "negative": ["59", 1],
+                            "latent_image": ["64", 0]
+                        },
+                        "class_type": "KSampler"
+                    },
+                    "70": {
+                        "inputs": {
+                            "style1": "Illustration | Anime",
+                            "style2": "sai-anime",
+                            "style3": "ART | African Traditional",
+                            "style4": "No Style"
+                        },
+                        "class_type": "Prompt Multiple Styles Selector"
+                    },
+                    "71": {
+                        "inputs": {
+                            "filename_prefix": "ComfyUI",
+                            "images": ["56", 0]
+                        },
+                        "class_type": "SaveImage"
+                    },
+                    "74": {
+                        "inputs": {
+                            "image": imageName
+                        },
+                        "class_type": "LoadImage"
+                    },
+                    "95": {
+                        "inputs": {
+                            "value": negativeExtra + ", "
+                        },
+                        "class_type": "PrimitiveStringMultiline"
+                    }
+                };
+                
+                // Queue prompt
+                var promptResponse = await fetch(baseUrl + '/prompt', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({prompt: workflow})
+                });
+                
+                if (!promptResponse.ok) {
+                    throw new Error('執行工作流程失敗: ' + promptResponse.status);
+                }
+                
+                var promptData = await promptResponse.json();
+                var promptId = promptData.prompt_id;
+                
+                // Poll for completion
+                submitBtn.innerHTML = '<span class="loading-spinner"></span>生成中，請稍候...';
+                var maxAttempts = 120; // Florence2 需要較長時間
+                var attempt = 0;
+                
+                while (attempt < maxAttempts) {
+                    await new Promise(function(resolve) { setTimeout(resolve, 2000); });
+                    
+                    var historyResponse = await fetch(baseUrl + '/history/' + promptId);
+                    var historyData = await historyResponse.json();
+                    
+                    if (historyData[promptId] && historyData[promptId].outputs) {
+                        var outputs = historyData[promptId].outputs;
+                        var imageInfo = null;
+                        
+                        if (outputs['71'] && outputs['71'].images && outputs['71'].images.length > 0) {
+                            imageInfo = outputs['71'].images[0];
+                        }
+                        
+                        if (imageInfo) {
+                            var imageUrl = baseUrl + '/view?filename=' + encodeURIComponent(imageInfo.filename) + '&subfolder=' + encodeURIComponent(imageInfo.subfolder || '') + '&type=' + encodeURIComponent(imageInfo.type || 'output');
+                            
+                            var imageResponse = await fetch(imageUrl);
+                            animeResultBlob = await imageResponse.blob();
+                            var resultUrl = URL.createObjectURL(animeResultBlob);
+                            
+                            document.getElementById('animeResultImage').src = resultUrl;
+                            document.getElementById('animePlaceholder').style.display = 'none';
+                            document.getElementById('animeResultContainer').classList.add('show');
+                            break;
+                        }
+                    }
+                    
+                    attempt++;
+                }
+                
+                if (attempt >= maxAttempts) {
+                    throw new Error('處理超時，請稍後再試');
+                }
+
+            } catch (error) {
+                showError(error.message || '處理失敗，請檢查 API URL 和網路連線');
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '生成動漫風格';
+            }
+        }
+
+        function downloadAnimeResult() {
+            if (animeResultBlob) {
+                var url = URL.createObjectURL(animeResultBlob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'anime_' + Date.now() + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Drag and drop support
+        ['contentUpload', 'styleUpload', 'sketchUpload', 'animeUpload'].forEach(function(id) {
+            var element = document.getElementById(id);
+            if (!element) return;
+            
+            element.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#9333ea';
+            });
+            
+            element.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#d1d5db';
+            });
+            
+            element.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.style.borderColor = '#d1d5db';
+                
+                var files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.startsWith('image/')) {
+                    var inputId = id === 'contentUpload' ? 'contentInput' : 
+                                  id === 'styleUpload' ? 'styleInput' : 
+                                  id === 'sketchUpload' ? 'sketchInput' : 'animeInput';
+                    var input = document.getElementById(inputId);
+                    input.files = files;
+                    var event = new Event('change');
+                    input.dispatchEvent(event);
+                }
+            });
+        });
+
+        // Initialize
+        togglePromptInput();
+    </script>
+</body>
+</html>

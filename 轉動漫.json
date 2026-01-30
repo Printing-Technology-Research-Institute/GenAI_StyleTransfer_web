@@ -1,0 +1,625 @@
+{
+  "55": {
+    "inputs": {
+      "text": [
+        "58",
+        0
+      ],
+      "clip": [
+        "67",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt) 負面提示詞"
+    }
+  },
+  "56": {
+    "inputs": {
+      "samples": [
+        "69",
+        0
+      ],
+      "vae": [
+        "66",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "57": {
+    "inputs": {
+      "text": [
+        "61",
+        0
+      ],
+      "clip": [
+        "67",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt) 正面提示詞"
+    }
+  },
+  "58": {
+    "inputs": {
+      "delimiter": ", ",
+      "clean_whitespace": "true",
+      "text_b": [
+        "70",
+        1
+      ]
+    },
+    "class_type": "Text Concatenate",
+    "_meta": {
+      "title": "負面文字串接"
+    }
+  },
+  "59": {
+    "inputs": {
+      "strength": 0.8,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "57",
+        0
+      ],
+      "negative": [
+        "55",
+        0
+      ],
+      "control_net": [
+        "68",
+        0
+      ],
+      "image": [
+        "62",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "60": {
+    "inputs": {
+      "images": [
+        "62",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "61": {
+    "inputs": {
+      "delimiter": ", ",
+      "clean_whitespace": "true",
+      "text_a": [
+        "65",
+        0
+      ],
+      "text_b": [
+        "70",
+        0
+      ]
+    },
+    "class_type": "Text Concatenate",
+    "_meta": {
+      "title": "正面文字串接"
+    }
+  },
+  "62": {
+    "inputs": {
+      "coarse": "disable",
+      "resolution": 1024,
+      "image": [
+        "74",
+        0
+      ]
+    },
+    "class_type": "LineArtPreprocessor",
+    "_meta": {
+      "title": "Realistic Lineart"
+    }
+  },
+  "63": {
+    "inputs": {
+      "version": "base-PromptGen"
+    },
+    "class_type": "LayerMask: LoadFlorence2Model",
+    "_meta": {
+      "title": "LayerMask: Load Florence2 Model(Advance)"
+    }
+  },
+  "64": {
+    "inputs": {
+      "pixels": [
+        "74",
+        0
+      ],
+      "vae": [
+        "66",
+        2
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "65": {
+    "inputs": {
+      "task": "more detailed caption",
+      "text_input": "",
+      "max_new_tokens": 1024,
+      "num_beams": 3,
+      "do_sample": false,
+      "fill_mask": false,
+      "florence2_model": [
+        "63",
+        0
+      ],
+      "image": [
+        "74",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: Florence2Image2Prompt",
+    "_meta": {
+      "title": "LayerUtility: Florence2 Image2Prompt(Advance)"
+    }
+  },
+  "66": {
+    "inputs": {
+      "ckpt_name": "epicphotogasm_lastUnicorn.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "67": {
+    "inputs": {
+      "lora_name": "AnimeAnything_SD15.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "66",
+        0
+      ],
+      "clip": [
+        "66",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "68": {
+    "inputs": {
+      "control_net_name": "control_v11p_sd15_lineart.pth"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "69": {
+    "inputs": {
+      "seed": 1057118949743481,
+      "steps": 30,
+      "cfg": 3,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "67",
+        0
+      ],
+      "positive": [
+        "59",
+        0
+      ],
+      "negative": [
+        "59",
+        1
+      ],
+      "latent_image": [
+        "64",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "70": {
+    "inputs": {
+      "style1": "Illustration | Anime",
+      "style2": "sai-anime",
+      "style3": "ART | African Traditional",
+      "style4": "No Style"
+    },
+    "class_type": "Prompt Multiple Styles Selector",
+    "_meta": {
+      "title": "Prompt Multiple Styles Selector 風格選擇"
+    }
+  },
+  "71": {
+    "inputs": {
+      "filename_prefix": "2026-01-30/1057118949743481",
+      "images": [
+        "56",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "72": {
+    "inputs": {
+      "any_value": [
+        "61",
+        0
+      ]
+    },
+    "class_type": "Show any to JSON [Crystools]",
+    "_meta": {
+      "title": "🪛 Show any to JSON"
+    }
+  },
+  "73": {
+    "inputs": {
+      "any_value": [
+        "58",
+        0
+      ]
+    },
+    "class_type": "Show any to JSON [Crystools]",
+    "_meta": {
+      "title": "🪛 Show any to JSON"
+    }
+  },
+  "74": {
+    "inputs": {
+      "image": "2000x1333_wmkn_56954059532653_0.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "75": {
+    "inputs": {
+      "text": [
+        "78",
+        0
+      ],
+      "clip": [
+        "87",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt) 負面提示詞"
+    }
+  },
+  "76": {
+    "inputs": {
+      "samples": [
+        "89",
+        0
+      ],
+      "vae": [
+        "86",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "77": {
+    "inputs": {
+      "text": [
+        "81",
+        0
+      ],
+      "clip": [
+        "87",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt) 正面提示詞"
+    }
+  },
+  "78": {
+    "inputs": {
+      "delimiter": ", ",
+      "clean_whitespace": "true",
+      "text_a": [
+        "95",
+        0
+      ],
+      "text_b": [
+        "90",
+        1
+      ]
+    },
+    "class_type": "Text Concatenate",
+    "_meta": {
+      "title": "負面文字串接"
+    }
+  },
+  "79": {
+    "inputs": {
+      "strength": 0.8,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "77",
+        0
+      ],
+      "negative": [
+        "75",
+        0
+      ],
+      "control_net": [
+        "88",
+        0
+      ],
+      "image": [
+        "82",
+        0
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "80": {
+    "inputs": {
+      "images": [
+        "82",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "81": {
+    "inputs": {
+      "delimiter": ", ",
+      "clean_whitespace": "true",
+      "text_a": [
+        "85",
+        0
+      ],
+      "text_b": [
+        "90",
+        0
+      ]
+    },
+    "class_type": "Text Concatenate",
+    "_meta": {
+      "title": "正面文字串接"
+    }
+  },
+  "82": {
+    "inputs": {
+      "coarse": "disable",
+      "resolution": 1024,
+      "image": [
+        "94",
+        0
+      ]
+    },
+    "class_type": "LineArtPreprocessor",
+    "_meta": {
+      "title": "Realistic Lineart"
+    }
+  },
+  "83": {
+    "inputs": {
+      "version": "base-PromptGen"
+    },
+    "class_type": "LayerMask: LoadFlorence2Model",
+    "_meta": {
+      "title": "LayerMask: Load Florence2 Model(Advance)"
+    }
+  },
+  "84": {
+    "inputs": {
+      "pixels": [
+        "94",
+        0
+      ],
+      "vae": [
+        "86",
+        2
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "85": {
+    "inputs": {
+      "task": "more detailed caption",
+      "text_input": "",
+      "max_new_tokens": 1024,
+      "num_beams": 3,
+      "do_sample": false,
+      "fill_mask": false,
+      "florence2_model": [
+        "83",
+        0
+      ],
+      "image": [
+        "94",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: Florence2Image2Prompt",
+    "_meta": {
+      "title": "LayerUtility: Florence2 Image2Prompt(Advance)"
+    }
+  },
+  "86": {
+    "inputs": {
+      "ckpt_name": "epicphotogasm_lastUnicorn.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "87": {
+    "inputs": {
+      "lora_name": "AnimeAnything_SD15.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "86",
+        0
+      ],
+      "clip": [
+        "86",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "88": {
+    "inputs": {
+      "control_net_name": "control_v11p_sd15_lineart.pth"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "89": {
+    "inputs": {
+      "seed": 882321300539543,
+      "steps": 20,
+      "cfg": 7,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "87",
+        0
+      ],
+      "positive": [
+        "79",
+        0
+      ],
+      "negative": [
+        "79",
+        1
+      ],
+      "latent_image": [
+        "84",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "90": {
+    "inputs": {
+      "style1": "Illustration | Anime",
+      "style2": "No Style",
+      "style3": "Illustration | Fantasy Cartoon on White BG",
+      "style4": "No Style"
+    },
+    "class_type": "Prompt Multiple Styles Selector",
+    "_meta": {
+      "title": "Prompt Multiple Styles Selector 風格選擇"
+    }
+  },
+  "91": {
+    "inputs": {
+      "filename_prefix": "2026-01-30/1057118949743481",
+      "images": [
+        "76",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "92": {
+    "inputs": {
+      "any_value": [
+        "81",
+        0
+      ]
+    },
+    "class_type": "Show any to JSON [Crystools]",
+    "_meta": {
+      "title": "🪛 Show any to JSON"
+    }
+  },
+  "93": {
+    "inputs": {
+      "any_value": [
+        "78",
+        0
+      ]
+    },
+    "class_type": "Show any to JSON [Crystools]",
+    "_meta": {
+      "title": "🪛 Show any to JSON"
+    }
+  },
+  "94": {
+    "inputs": {
+      "image": "S__776888322.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "95": {
+    "inputs": {
+      "value": "nsfw, "
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "補充負面詞"
+    }
+  }
+}
