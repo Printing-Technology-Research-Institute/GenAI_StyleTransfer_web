@@ -1,2 +1,3 @@
 # GenAI_StyleTransfer_web
 用生成式AI生成各種效果的圖片
+需注意要填入ComfyUI API URL，要去把伺服器的ComfyUI+trycloudflare架起來才能獲得URL
