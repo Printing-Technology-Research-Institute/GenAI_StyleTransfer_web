@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>風格魔法師 · Ollama</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #16161a;
+  --surface2: #1e1e24;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --accent: #6eb89e;
+  --accent2: #8fd4ba;
+  --text: #f0ede6;
+  --muted: #8a8680;
+  --danger: #c0614a;
+  --success: #5a9e6f;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 54px;
+  border-bottom: 0.5px solid var(--border2);
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.topbar-sub {
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-left: 12px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(420px, 44%) 1fr;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.left-panel {
+  border-right: 0.5px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.left-panel::-webkit-scrollbar { width: 3px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.section {
+  padding: 1.1rem 1.3rem;
+  border-bottom: 0.5px solid var(--border);
+}
+
+.section-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.step-num {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.58rem; color: var(--muted);
+  flex-shrink: 0;
+}
+.step-num.done {
+  background: rgba(110,184,158,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.config-field {
+  margin-bottom: 10px;
+}
+.config-field:last-child { margin-bottom: 0; }
+.config-field label {
+  display: block;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.config-field input {
+  width: 100%;
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 11px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+}
+.config-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.hint-sm {
+  font-size: 0.6rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+.upload-zone {
+  border: 1.5px dashed var(--border2);
+  border-radius: 11px;
+  padding: 1.6rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(110,184,158,0.06);
+}
+.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-zone svg { opacity: 0.35; margin-bottom: 0.5rem; }
+.upload-zone strong { display: block; font-size: 0.78rem; color: var(--text); margin-bottom: 0.2rem; }
+.upload-zone p { font-size: 0.68rem; color: var(--muted); line-height: 1.7; }
+
+.thumb-wrap {
+  display: none;
+  position: relative;
+  border-radius: 11px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: var(--surface2);
+}
+.thumb-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.thumb-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgba(13,13,15,0.85));
+}
+.thumb-name {
+  position: absolute; bottom: 9px; left: 11px;
+  font-size: 0.65rem; color: rgba(255,255,255,0.5);
+  max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.thumb-change {
+  position: absolute; bottom: 9px; right: 9px;
+  background: rgba(255,255,255,0.1);
+  border: 0.5px solid var(--border2);
+  border-radius: 6px; color: var(--text); cursor: pointer;
+  padding: 4px 11px; font-size: 0.65rem;
+  font-family: 'Space Mono', monospace; letter-spacing: 0.04em;
+}
+.thumb-change:hover { background: rgba(255,255,255,0.2); }
+
+.style-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.style-btn {
+  background: var(--surface2);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.style-btn:hover { border-color: var(--accent); background: rgba(110,184,158,0.05); }
+.style-btn.selected {
+  border-color: var(--accent);
+  background: rgba(110,184,158,0.09);
+  box-shadow: inset 0 0 0 1px rgba(110,184,158,0.2);
+}
+.style-btn .emoji { font-size: 1.2rem; display: block; margin-bottom: 0.28rem; }
+.style-btn .name { font-size: 0.78rem; font-weight: 700; color: var(--text); display: block; }
+.style-btn .desc { font-size: 0.62rem; color: var(--muted); margin-top: 1px; display: block; }
+
+#error-msg {
+  display: none;
+  margin: 0.6rem 1.3rem 0;
+  padding: 9px 13px;
+  background: rgba(192,97,74,0.1);
+  border: 0.5px solid var(--danger);
+  border-radius: 8px;
+  color: #e07a65;
+  font-size: 0.7rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.generate-wrap { padding: 0.9rem 1.3rem 1.3rem; }
+
+#generate-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #0d1512;
+  border: none;
+  border-radius: 10px;
+  padding: 13px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.83rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+#generate-btn:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
+#generate-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.loading-bar {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 0%; background: rgba(255,255,255,0.18);
+  transition: width 0.5s ease;
+}
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.empty-state svg { opacity: 0.2; }
+.empty-state p { font-size: 0.75rem; color: var(--muted); text-align: center; line-height: 1.9; }
+
+#loading-overlay {
+  display: none;
+  position: absolute; inset: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1.2rem;
+  background: rgba(13,13,15,0.55);
+  backdrop-filter: blur(6px);
+  z-index: 10;
+}
+#loading-overlay.active { display: flex; }
+
+.spinner {
+  width: 38px; height: 38px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-msg { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; }
+.loading-tip { font-size: 0.62rem; color: var(--border2); letter-spacing: 0.08em; margin-top: 3px; text-align: center; }
+
+#result-area {
+  display: none;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  animation: fadeUp 0.35s ease;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.result-img-container {
+  position: relative;
+  border-radius: 13px;
+  overflow: hidden;
+  border: 0.5px solid var(--border2);
+  max-width: 100%;
+}
+.result-img-container img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 54px - 120px);
+  object-fit: contain;
+}
+.result-badge {
+  position: absolute; top: 11px; left: 11px;
+  background: rgba(13,13,15,0.7);
+  border: 0.5px solid var(--border2);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent);
+}
+
+.result-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+.btn-action {
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 18px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: all 0.15s;
+}
+.btn-action:hover { border-color: var(--accent); color: var(--accent); }
+
+.btn-action.primary {
+  background: var(--accent); border-color: var(--accent); color: #0d1512;
+}
+.btn-action.primary:hover { background: var(--accent2); border-color: var(--accent2); color: #0d1512; }
+
+#debug-pre {
+  display: none;
+  max-width: 100%;
+  max-height: 140px;
+  overflow: auto;
+  font-size: 0.58rem;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: left;
+}
+
+@media (max-width: 720px) {
+  html, body { overflow: auto; }
+  .workspace { grid-template-columns: 1fr; }
+  .right-panel { min-height: 380px; border-top: 0.5px solid var(--border2); }
+  .topbar-sub { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;">
+    <span class="topbar-title">風格魔法師</span>
+    <span class="topbar-sub">Ollama 本機</span>
+  </div>
+</div>
+
+<div class="workspace">
+
+  <div class="left-panel">
+
+    <div class="section">
+      <div class="section-label">Ollama 連線</div>
+      <div class="config-field">
+        <label for="ollama-base">Base URL</label>
+        <input type="text" id="ollama-base" spellcheck="false" autocomplete="off" placeholder="http://localhost:11434">
+      </div>
+      <div class="config-field">
+        <label for="ollama-model">模型名稱</label>
+        <input type="text" id="ollama-model" spellcheck="false" autocomplete="off" placeholder="x/flux2-klein:4b">
+      </div>
+      <p class="hint-sm">對應 Python：<code style="font-size:0.65rem;">POST …/api/generate</code>，<code style="font-size:0.65rem;">images</code> 為純 base64（無 data: 前綴）。若瀏覽器擋 CORS，請用同一台電腦的簡易 HTTP 開此檔，或設定 Ollama 的 <code style="font-size:0.65rem;">OLLAMA_ORIGINS</code>。</p>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <span class="step-num" id="step1-dot">1</span>上傳圖片
+      </div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept="image/*">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="10" width="36" height="28" rx="4" stroke="#6eb89e" stroke-width="1.5"/>
+          <circle cx="17" cy="20" r="3.5" stroke="#6eb89e" stroke-width="1.5"/>
+          <path d="M6 32 L15 23 L22 30 L30 22 L42 34" stroke="#6eb89e" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M31 10 L31 4 M31 4 L28 7 M31 4 L34 7" stroke="#6eb89e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <strong>點擊選擇 或 拖曳圖片</strong>
+        <p>支援 JPG · PNG · WEBP<br>過大會等比例縮短邊至約 1800px，送給 Ollama 前轉成 PNG 再 base64（與你提供的 Python 一致）</p>
+      </div>
+      <div class="thumb-wrap" id="thumb-wrap">
+        <img id="thumb-img" src="" alt="預覽">
+        <div class="thumb-overlay"></div>
+        <span class="thumb-name" id="thumb-name"></span>
+        <button type="button" class="thumb-change" onclick="resetUpload()">重新選擇</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label">
+        <span class="step-num done" id="step2-dot">2</span>選擇風格
+      </div>
+      <div class="style-grid">
+        <div class="style-btn selected" data-style="ghibli" onclick="selectStyle(this)">
+          <span class="emoji">🌿</span>
+          <span class="name">吉卜力</span>
+          <span class="desc">宮崎駿手繪動畫</span>
+        </div>
+        <div class="style-btn" data-style="chibi" onclick="selectStyle(this)">
+          <span class="emoji">🎮</span>
+          <span class="name">Q 版</span>
+          <span class="desc">大頭可愛卡通</span>
+        </div>
+        <div class="style-btn" data-style="painting" onclick="selectStyle(this)">
+          <span class="emoji">🎨</span>
+          <span class="name">油畫</span>
+          <span class="desc">厚重印象派筆觸</span>
+        </div>
+        <div class="style-btn" data-style="sketch" onclick="selectStyle(this)">
+          <span class="emoji">✏️</span>
+          <span class="name">彩色素描</span>
+          <span class="desc">手繪彩鉛風格</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="error-msg"></div>
+
+    <div class="generate-wrap">
+      <button type="button" id="generate-btn" onclick="generate()">
+        <div class="loading-bar" id="loading-bar"></div>
+        <span id="btn-text">✦ 開始轉換</span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="right-panel">
+
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div>
+        <div class="loading-msg" id="loading-msg">Ollama 推理中...</div>
+        <div class="loading-tip">本機 GPU/CPU 速度而定，可能需數十秒至數分鐘</div>
+      </div>
+    </div>
+
+    <div class="empty-state" id="empty-state">
+      <svg width="60" height="60" viewBox="0 0 64 64" fill="none">
+        <rect x="8" y="14" width="48" height="36" rx="5" stroke="#6eb89e" stroke-width="1.2"/>
+        <circle cx="22" cy="26" r="5" stroke="#6eb89e" stroke-width="1.2"/>
+        <path d="M8 40 L20 28 L30 38 L40 28 L56 44" stroke="#6eb89e" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M44 14 L44 6 M44 6 L40 10 M44 6 L48 10" stroke="#6eb89e" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <p>確認 Ollama 已啟動並已拉好模型<br>上傳圖片後點「開始轉換」</p>
+    </div>
+
+    <div id="result-area">
+      <div class="result-img-container">
+        <img id="result-img" src="" alt="轉換結果">
+        <span class="result-badge" id="style-badge">吉卜力</span>
+      </div>
+      <pre id="debug-pre"></pre>
+      <div class="result-actions">
+        <a id="dl-btn" class="btn-action" download="ollama_style.png">↓ 下載</a>
+        <button type="button" class="btn-action primary" onclick="resetResult()">再轉一張</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const STYLE_MAP = {
+  ghibli: { name: "吉卜力", prompt: "restyle image in studio ghibli style, keep all details" },
+  chibi: { name: "Q 版", prompt: "restyle image in cute chibi anime style, keep all details" },
+  painting: { name: "油畫", prompt: "restyle image as oil painting, keep all details" },
+  sketch: { name: "彩色素描", prompt: "restyle image as colored pencil sketch, keep all details" },
+};
+
+const MSGS = ["Ollama 推理中...", "模型運算中...", "快好了...", "仍在處理..."];
+
+/** 與 Python 範例一致：長邊上限 */
+const MAX_IMAGE_LONG_EDGE = 1800;
+
+const DEFAULT_BASE = "http://localhost:11434";
+const DEFAULT_MODEL = "x/flux2-klein:4b";
+
+let selectedStyle = "ghibli";
+let currentFile = null;
+/** @type {string|null} */
+let thumbObjectUrl = null;
+let msgTimer = null;
+
+function selectStyle(el) {
+  document.querySelectorAll(".style-btn").forEach((b) => b.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedStyle = el.dataset.style;
+}
+
+function resetUpload() {
+  currentFile = null;
+  if (thumbObjectUrl) {
+    URL.revokeObjectURL(thumbObjectUrl);
+    thumbObjectUrl = null;
+  }
+  document.getElementById("thumb-wrap").style.display = "none";
+  document.getElementById("upload-zone").style.display = "block";
+  document.getElementById("file-input").value = "";
+  document.getElementById("step1-dot").classList.remove("done");
+}
+
+/**
+ * @param {File} file
+ * @returns {Promise<HTMLImageElement>}
+ */
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("無法讀取圖片"));
+    };
+    img.src = url;
+  });
+}
+
+/**
+ * 預覽用：等比例縮小為 JPEG。
+ * @param {File} file
+ * @param {number} maxLongEdge
+ * @returns {Promise<File>}
+ */
+async function resizeImageForUpload(file, maxLongEdge) {
+  const img = await loadImageFromFile(file);
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const long = Math.max(w, h);
+  if (!long || long <= maxLongEdge) return file;
+
+  const scale = maxLongEdge / long;
+  const nw = Math.max(1, Math.round(w * scale));
+  const nh = Math.max(1, Math.round(h * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = nw;
+  canvas.height = nh;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("無法建立畫布");
+  ctx.drawImage(img, 0, 0, nw, nh);
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("輸出圖片失敗"))),
+      "image/jpeg",
+      0.92
+    );
+  });
+  const base = file.name.replace(/\.[^.]+$/, "") || "image";
+  return new File([blob], base + "_upload.jpg", { type: "image/jpeg" });
+}
+
+/**
+ * 送 Ollama 前改為 PNG，再 base64（對齊 Python：讀 PNG 二進位後 encode）。
+ * @param {File} file
+ * @param {number} maxLongEdge
+ * @returns {Promise<File>}
+ */
+async function resizeImageForUploadAsPng(file, maxLongEdge) {
+  const img = await loadImageFromFile(file);
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const long = Math.max(w, h);
+  let nw = w;
+  let nh = h;
+  if (long > maxLongEdge) {
+    const scale = maxLongEdge / long;
+    nw = Math.max(1, Math.round(w * scale));
+    nh = Math.max(1, Math.round(h * scale));
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = nw;
+  canvas.height = nh;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("無法建立畫布");
+  ctx.drawImage(img, 0, 0, nw, nh);
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("輸出 PNG 失敗"))),
+      "image/png"
+    );
+  });
+  const base = file.name.replace(/\.[^.]+$/, "") || "image";
+  return new File([blob], base + "_ollama.png", { type: "image/png" });
+}
+
+/**
+ * Ollama 要的純 base64 字串，不含 data:image/...;base64, 前綴。
+ * @param {File} file
+ * @returns {Promise<string>}
+ */
+function fileToBase64Raw(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const dataUrl = /** @type {string} */ (r.result);
+      const i = dataUrl.indexOf(",");
+      resolve(i >= 0 ? dataUrl.slice(i + 1) : dataUrl);
+    };
+    r.onerror = () => reject(new Error("讀取檔案失敗"));
+    r.readAsDataURL(file);
+  });
+}
+
+/**
+ * 從 `/api/generate` 回傳中盡量還原一張可顯示的圖（不同模型欄位可能不同）。
+ * @param {Record<string, unknown>} data
+ * @returns {string|null} data URL
+ */
+function imageDataUrlFromOllamaGenerate(data) {
+  if (!data || typeof data !== "object") return null;
+
+  const imgs = data.images;
+  if (Array.isArray(imgs) && imgs[0] && typeof imgs[0] === "string") {
+    return toDataUrlFromMaybeB64(imgs[0]);
+  }
+
+  const r = data.response;
+  if (typeof r === "string") {
+    const t = r.trim();
+    if (t.startsWith("data:image")) return t;
+    if (t.length > 200 && /^[A-Za-z0-9+/=\r\n]+$/.test(t.replace(/\s/g, "").slice(0, 500))) {
+      return toDataUrlFromMaybeB64(t.replace(/\s/g, ""));
+    }
+  }
+
+  const msg = data.message;
+  if (msg && typeof msg === "object" && "content" in msg) {
+    const c = /** @type {{ content?: unknown }} */ (msg).content;
+    if (typeof c === "string") return imageDataUrlFromOllamaGenerate({ response: c });
+  }
+
+  return null;
+}
+
+/**
+ * @param {string} raw
+ * @returns {string|null}
+ */
+function toDataUrlFromMaybeB64(raw) {
+  const s = raw.replace(/^data:image\/\w+;base64,/, "").trim();
+  if (s.length < 32) return null;
+  return "data:image/png;base64," + s;
+}
+
+/**
+ * @param {string} base 無結尾斜線亦可
+ * @returns {string}
+ */
+function normalizeBaseUrl(base) {
+  const t = (base || "").trim() || DEFAULT_BASE;
+  return t.replace(/\/+$/, "");
+}
+
+/**
+ * @param {string} baseUrl
+ * @param {string} model
+ * @param {string} prompt
+ * @param {string[]} imagesB64
+ * @returns {Promise<Record<string, unknown>>}
+ */
+async function ollamaGenerate(baseUrl, model, prompt, imagesB64) {
+  const url = `${normalizeBaseUrl(baseUrl)}/api/generate`;
+  const payload = {
+    model,
+    prompt,
+    images: imagesB64,
+    stream: false,
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const text = await res.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error("回應不是 JSON：" + text.slice(0, 400));
+  }
+  if (!res.ok) {
+    const err = /** @type {{ error?: string }} */ (data);
+    throw new Error(err.error || `HTTP ${res.status}：${text.slice(0, 500)}`);
+  }
+  return data;
+}
+
+function persistConfig() {
+  sessionStorage.setItem("ollama_base", document.getElementById("ollama-base").value.trim());
+  sessionStorage.setItem("ollama_model", document.getElementById("ollama-model").value.trim());
+}
+
+document.getElementById("ollama-base").addEventListener("change", persistConfig);
+document.getElementById("ollama-model").addEventListener("change", persistConfig);
+
+document.getElementById("file-input").addEventListener("change", function () {
+  if (this.files[0]) void handleFile(this.files[0]);
+});
+
+const zone = document.getElementById("upload-zone");
+zone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  zone.classList.add("drag-over");
+});
+zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+zone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  zone.classList.remove("drag-over");
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith("image/")) void handleFile(f);
+});
+
+/**
+ * @param {File} file
+ * @returns {Promise<void>}
+ */
+async function handleFile(file) {
+  hideError();
+  try {
+    const processed = await resizeImageForUpload(file, MAX_IMAGE_LONG_EDGE);
+    currentFile = processed;
+    if (thumbObjectUrl) URL.revokeObjectURL(thumbObjectUrl);
+    thumbObjectUrl = URL.createObjectURL(processed);
+    document.getElementById("thumb-img").src = thumbObjectUrl;
+    document.getElementById("thumb-name").textContent = processed.name;
+    document.getElementById("upload-zone").style.display = "none";
+    document.getElementById("thumb-wrap").style.display = "block";
+    document.getElementById("step1-dot").classList.add("done");
+  } catch (err) {
+    showError("圖片處理失敗：" + (err && err.message ? err.message : String(err)));
+    resetUpload();
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById("error-msg");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
+function hideError() {
+  document.getElementById("error-msg").style.display = "none";
+}
+
+function setLoading(on) {
+  const btn = document.getElementById("generate-btn");
+  btn.disabled = on;
+  document.getElementById("btn-text").textContent = on ? "轉換中..." : "✦ 開始轉換";
+  document.getElementById("loading-bar").style.width = on ? "80%" : "0%";
+  const overlay = document.getElementById("loading-overlay");
+  if (on) {
+    overlay.classList.add("active");
+    document.getElementById("empty-state").style.display = "none";
+    let i = 0;
+    msgTimer = setInterval(() => {
+      document.getElementById("loading-msg").textContent = MSGS[i++ % MSGS.length];
+    }, 3500);
+  } else {
+    overlay.classList.remove("active");
+    clearInterval(msgTimer);
+  }
+}
+
+async function generate() {
+  hideError();
+  if (!currentFile) {
+    showError("請先上傳一張圖片");
+    return;
+  }
+  const base = normalizeBaseUrl(document.getElementById("ollama-base").value);
+  const model = document.getElementById("ollama-model").value.trim() || DEFAULT_MODEL;
+  if (!model) {
+    showError("請填模型名稱");
+    return;
+  }
+  persistConfig();
+
+  setLoading(true);
+  document.getElementById("result-area").style.display = "none";
+  document.getElementById("debug-pre").style.display = "none";
+
+  try {
+    const prompt = STYLE_MAP[selectedStyle].prompt;
+    const pngFile = await resizeImageForUploadAsPng(currentFile, MAX_IMAGE_LONG_EDGE);
+    const b64 = await fileToBase64Raw(pngFile);
+    const data = await ollamaGenerate(base, model, prompt, [b64]);
+
+    const dataUrl = imageDataUrlFromOllamaGenerate(data);
+    if (dataUrl) {
+      showResult(dataUrl, null);
+    } else {
+      const respText =
+        typeof data.response === "string" ? data.response : JSON.stringify(data, null, 2);
+      showResult("", respText);
+    }
+  } catch (e) {
+    showError("錯誤：" + (e && e.message ? e.message : String(e)));
+    document.getElementById("empty-state").style.display = "flex";
+  } finally {
+    setLoading(false);
+  }
+}
+
+/**
+ * @param {string} dataUrlOrEmpty
+ * @param {string|null} debugText 無圖時顯示原始文字/JSON
+ */
+function showResult(dataUrlOrEmpty, debugText) {
+  const name = STYLE_MAP[selectedStyle].name;
+  const img = document.getElementById("result-img");
+  const dl = document.getElementById("dl-btn");
+  const pre = document.getElementById("debug-pre");
+
+  document.getElementById("style-badge").textContent = name;
+
+  if (dataUrlOrEmpty) {
+    img.src = dataUrlOrEmpty;
+    dl.href = dataUrlOrEmpty;
+    dl.style.display = "inline-flex";
+    pre.style.display = "none";
+  } else {
+    img.removeAttribute("src");
+    dl.style.display = "none";
+    pre.textContent = debugText || "(無圖像欄位)";
+    pre.style.display = "block";
+  }
+
+  document.getElementById("result-area").style.display = "flex";
+  document.getElementById("empty-state").style.display = "none";
+}
+
+function resetResult() {
+  document.getElementById("result-area").style.display = "none";
+  document.getElementById("empty-state").style.display = "flex";
+}
+
+const sb = sessionStorage.getItem("ollama_base");
+const sm = sessionStorage.getItem("ollama_model");
+if (sb) document.getElementById("ollama-base").value = sb;
+else document.getElementById("ollama-base").value = DEFAULT_BASE;
+if (sm) document.getElementById("ollama-model").value = sm;
+else document.getElementById("ollama-model").value = DEFAULT_MODEL;
+</script>
+</body>
+</html>
