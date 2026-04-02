@@ -100,33 +100,371 @@ body::after {
 .settings-btn:hover { border-color: var(--border-hover); color: var(--text); }
 .settings-btn svg { width: 18px; height: 18px; }
 
-/* ─── Style Tabs ─── */
-.style-tabs {
+/* ─── Style Picker Bar ─── */
+.style-picker-bar {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 24px;
-  flex-wrap: wrap;
 }
-.style-tab {
-  padding: 9px 18px;
-  border-radius: 100px;
-  border: 1px solid var(--border);
+
+/* Currently selected style chip */
+.current-style-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
   background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  min-width: 0;
+  transition: border-color 0.3s;
+}
+.chip-thumb {
+  width: 48px;
+  height: 36px;
+  border-radius: 7px;
+  background: var(--surface2);
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+.chip-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: none;
+}
+.chip-thumb img.loaded { display: block; }
+.chip-thumb .chip-thumb-emoji {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem;
+}
+.chip-thumb.has-img .chip-thumb-emoji { display: none; }
+.chip-info { flex: 1; min-width: 0; }
+.chip-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.3s;
+}
+.chip-desc {
+  font-size: 0.75rem;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* Open picker button */
+.open-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  height: 58px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
   font-family: 'Syne', sans-serif;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  flex-shrink: 0;
 }
-.style-tab:hover { border-color: var(--border-hover); color: var(--text); }
-.style-tab.active[data-style="ghibli"]  { background: rgba(142,203,122,0.12); border-color: var(--ghibli); color: var(--ghibli); }
-.style-tab.active[data-style="jojo"]    { background: rgba(255,124,110,0.12); border-color: var(--jojo);   color: var(--jojo);   }
-.style-tab.active[data-style="van"]     { background: rgba(246,195,90,0.12);  border-color: var(--van);    color: var(--van);    }
-.style-tab.active[data-style="picasso"] { background: rgba(110,181,255,0.12); border-color: var(--picasso);color: var(--picasso);}
-.style-tab.active[data-style="chibi"]   { background: rgba(244,139,206,0.12); border-color: var(--chibi);  color: var(--chibi);  }
+.open-picker-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(200,180,255,0.06);
+}
+.open-picker-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Random button */
+.random-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 58px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.random-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(200,180,255,0.06);
+}
+.random-btn .dice {
+  font-size: 1rem;
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(.36,.07,.19,.97);
+}
+.random-btn.rolling .dice { transform: rotate(360deg) scale(1.3); }
+
+/* ─── Style Picker Modal ─── */
+.picker-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(12px);
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.picker-overlay.open { display: flex; animation: pickerFadeIn 0.2s ease; }
+@keyframes pickerFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.picker-modal {
+  background: var(--surface);
+  border: 1px solid var(--border-hover);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pickerSlideUp 0.25s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes pickerSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.picker-header {
+  padding: 20px 24px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.picker-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.picker-subtitle {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.picker-close {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.picker-close:hover { color: var(--text); border-color: var(--border-hover); }
+
+/* Search bar inside picker */
+.picker-search-wrap {
+  padding: 14px 24px 0;
+  flex-shrink: 0;
+}
+.picker-search {
+  width: 100%;
+  padding: 9px 14px 9px 36px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%236b6a7e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 11px center;
+}
+.picker-search:focus { border-color: var(--accent); }
+.picker-search::placeholder { color: var(--muted); }
+
+/* Section label inside grid */
+.picker-section-label {
+  grid-column: 1 / -1;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 4px;
+}
+
+/* Style card grid */
+.picker-grid {
+  overflow-y: auto;
+  padding: 16px 24px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+.picker-grid::-webkit-scrollbar { width: 6px; }
+.picker-grid::-webkit-scrollbar-track { background: transparent; }
+.picker-grid::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
+
+.style-card {
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+}
+.style-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.style-card.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(200,180,255,0.15);
+}
+
+.style-card-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--surface);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.style-card-img img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: none;
+  transition: transform 0.3s;
+}
+.style-card-img img.loaded { display: block; }
+.style-card:hover .style-card-img img { transform: scale(1.04); }
+.style-card-img .card-emoji {
+  font-size: 2.2rem;
+  opacity: 0.35;
+  transition: opacity 0.2s;
+}
+.style-card:hover .card-emoji { opacity: 0.5; }
+.style-card-img.has-img .card-emoji { display: none; }
+
+/* Selected checkmark */
+.style-card .check-badge {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 22px; height: 22px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #0c0c0f;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.style-card.selected .check-badge { display: flex; }
+
+.style-card-info {
+  padding: 9px 10px 10px;
+}
+.style-card-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.style-card-desc {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+/* Picker footer */
+.picker-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 12px;
+}
+.picker-selected-info {
+  font-size: 0.82rem;
+  color: var(--muted);
+  flex: 1;
+}
+.picker-selected-info strong { color: var(--accent); }
+.picker-confirm-btn {
+  padding: 10px 24px;
+  border-radius: 100px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #0c0c0f;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.picker-confirm-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* No results */
+.picker-no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  display: none;
+}
+.picker-no-results .nr-icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.4; }
+
+@media (max-width: 640px) {
+  .style-picker-bar { gap: 8px; }
+  .open-picker-btn span { display: none; }
+  .random-btn span { display: none; }
+  .picker-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .picker-modal { max-height: 92vh; border-radius: 20px; }
+}
 
 /* ─── Main Card ─── */
 .card {
@@ -298,6 +636,7 @@ body::after {
 .submit-btn.style-van     { background: linear-gradient(135deg, var(--van), #f9dc8e); }
 .submit-btn.style-picasso { background: linear-gradient(135deg, var(--picasso), #9eceff); }
 .submit-btn.style-chibi   { background: linear-gradient(135deg, var(--chibi), #f8b8de); }
+.submit-btn.style-other   { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
 
 /* Download btn */
 .dl-btn {
@@ -449,7 +788,7 @@ body::after {
   <div class="header">
     <div class="header-left">
       <h1>Kontext 風格轉換</h1>
-      <p>Flux Kontext · LoRA 驅動 · 五種藝術風格</p>
+      <p>Flux Kontext · LoRA 驅動 · 22 種藝術風格</p>
     </div>
     <button class="settings-btn" onclick="openSettings()" title="API 設定">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -459,13 +798,52 @@ body::after {
     </button>
   </div>
 
-  <!-- Style Tabs -->
-  <div class="style-tabs">
-    <button class="style-tab active" data-style="ghibli" onclick="selectStyle('ghibli', this)">🌸 Studio Ghibli</button>
-    <button class="style-tab" data-style="jojo"    onclick="selectStyle('jojo', this)">⚡ JoJo 風格</button>
-    <button class="style-tab" data-style="van"     onclick="selectStyle('van', this)">🎨 梵谷風格</button>
-    <button class="style-tab" data-style="picasso" onclick="selectStyle('picasso', this)">🧩 畢卡索風格</button>
-    <button class="style-tab" data-style="chibi"   onclick="selectStyle('chibi', this)">🎮 3D Chibi</button>
+  <!-- Style Picker Bar -->
+  <div class="style-picker-bar">
+    <div class="current-style-chip" id="currentStyleChip">
+      <div class="chip-thumb" id="chipThumb">
+        <span class="chip-thumb-emoji" id="chipEmoji">🌸</span>
+        <img id="chipImg" alt="">
+      </div>
+      <div class="chip-info">
+        <div class="chip-name" id="chipName">吉卜力風格</div>
+        <div class="chip-desc" id="chipDesc">柔和水彩 · 暖色調 · 手繪感</div>
+      </div>
+    </div>
+    <button class="open-picker-btn" onclick="openPicker()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      <span>選擇風格</span>
+    </button>
+    <button class="random-btn" id="randomBtn" onclick="pickRandomStyle()">
+      <span class="dice">🎲</span>
+      <span>隨機</span>
+    </button>
+  </div>
+
+  <!-- Style Picker Modal -->
+  <div class="picker-overlay" id="pickerOverlay" onclick="onPickerOverlayClick(event)">
+    <div class="picker-modal">
+      <div class="picker-header">
+        <div>
+          <div class="picker-title">選擇風格</div>
+          <div class="picker-subtitle">22 種藝術風格 · 點選預覽圖確認選擇</div>
+        </div>
+        <button class="picker-close" onclick="closePicker()">✕</button>
+      </div>
+      <div class="picker-search-wrap">
+        <input class="picker-search" id="pickerSearch" type="text" placeholder="搜尋風格名稱…" oninput="filterCards(this.value)">
+      </div>
+      <div class="picker-grid" id="pickerGrid">
+        <!-- cards injected by JS -->
+      </div>
+      <div class="picker-footer">
+        <div class="picker-selected-info" id="pickerSelectedInfo">已選擇：<strong>吉卜力風格</strong></div>
+        <button class="picker-confirm-btn" onclick="confirmPicker()">確認選擇 ✓</button>
+      </div>
+    </div>
   </div>
 
   <!-- Main Card -->
@@ -513,7 +891,7 @@ body::after {
       <div class="style-indicator">
         <div class="style-dot" id="styleDot"></div>
         <div>
-          <div class="style-name" id="styleName">Studio Ghibli</div>
+          <div class="style-name" id="styleName">吉卜力風格</div>
           <div class="style-desc" id="styleDesc">柔和水彩 · 暖色調 · 手繪感</div>
         </div>
       </div>
@@ -555,12 +933,13 @@ var resultBlob    = null;
 
 var STYLES = {
   ghibli: {
-    name: 'Studio Ghibli',
+    name: '吉卜力風格',
     desc: '柔和水彩 · 暖色調 · 手繪感',
     color: 'var(--ghibli)',
     loraName: 'ghibliStyle_kontext_byJaneB.safetensors',
     prompt: 'Transform to Studio Ghibli style with soft watercolor shading, warm lighting, hand-drawn animation look, and pastel color palette, while maintaining the original composition, character details, facial features, textures, and all scene elements unchanged',
     saveNodeId: '197',
+    preview: 'img/ghibli.jpg',
   },
   jojo: {
     name: 'JoJo 風格',
@@ -569,6 +948,7 @@ var STYLES = {
     loraName: 'Kontext_OmniConsistency_lora .safetensors',
     prompt: 'Transform it into JoJo style, while strictly preserving the original structure, pose, and composition unchanged',
     saveNodeId: '281',
+    preview: 'img/jojo.jpg',
   },
   van: {
     name: '梵谷風格',
@@ -577,6 +957,7 @@ var STYLES = {
     loraName: 'Kontext_OmniConsistency_lora .safetensors',
     prompt: 'transform it into Van Gogh style, while strictly preserving the original structure, pose, and composition unchanged',
     saveNodeId: '290',
+    preview: 'img/van_gogh.jpg',
   },
   picasso: {
     name: '畢卡索風格',
@@ -585,14 +966,169 @@ var STYLES = {
     loraName: 'Kontext_OmniConsistency_lora .safetensors',
     prompt: 'transform it into Picasso style, while strictly preserving the original structure, pose, and composition unchanged',
     saveNodeId: '307',
+    preview: 'img/picasso.jpg',
   },
   chibi: {
-    name: '3D Chibi',
+    name: '3D Q版風格',
     desc: '圓潤 3D · Q 版可愛 · 玩具感',
     color: 'var(--chibi)',
     loraName: 'Kontext_OmniConsistency_lora .safetensors',
     prompt: 'Transform it into 3D chibi style, while strictly preserving the original structure, pose, and composition unchanged',
     saveNodeId: '314',
+    preview: 'img/chibi.jpg',
+  },
+  american_cartoon: {
+    name: '美式卡通風格',
+    desc: '粗線條 · 鮮豔色彩 · 誇張表情',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into American Cartoon style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/american_cartoon.jpg',
+  },
+  chinese_ink: {
+    name: '中國水墨風格',
+    desc: '流動筆墨 · 單色調 · 山水意境',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Chinese Ink style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/chinese_ink.jpg',
+  },
+  clay_toy: {
+    name: '黏土玩具風格',
+    desc: '霧面質感 · 指印紋路 · 軟塑感',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Clay Toy style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/clay_toy.jpg',
+  },
+  fabric: {
+    name: '布料風格',
+    desc: '織物紋理 · 縫線細節 · 布料折疊',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Fabric style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/fabric.jpg',
+  },
+  irasutoya: {
+    name: 'Irasutoya 插圖風格',
+    desc: '扁平向量 · 柔和色塊 · 日式插圖',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Irasutoya style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/irasutoya.jpg',
+  },
+  lego: {
+    name: '樂高風格',
+    desc: '積木方塊 · 圓柱手部 · 凸粒表面',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into LEGO style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/lego.jpg',
+  },
+  line_style: {
+    name: '線條風格',
+    desc: '極簡輪廓線 · 負空間 · 連續筆跡',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Line style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/line_style.jpg',
+  },
+  macaron: {
+    name: '馬卡龍風格',
+    desc: '粉嫩色調 · 柔和漸層 · 糖果質感',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Macaron style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/macaron.jpg',
+  },
+  oil_painting: {
+    name: '油畫風格',
+    desc: '厚塗筆觸 · 豐富顏料 · 光影層次',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Oil Painting style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/oil_painting.jpg',
+  },
+  origami: {
+    name: '摺紙風格',
+    desc: '幾何折疊 · 紙張外觀 · 銳利邊緣',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Origami style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/origami.jpg',
+  },
+  paper_cutting: {
+    name: '剪紙風格',
+    desc: '剪影藝術 · 鏤空圖案 · 負空間',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Paper Cutting style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/paper_cutting.jpg',
+  },
+  pixel: {
+    name: '像素風格',
+    desc: '8-bit 復古 · 方塊像素 · 遊戲感',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Pixel style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/pixel.jpg',
+  },
+  poly: {
+    name: '多邊形風格',
+    desc: '低多邊形 · 幾何切面 · 3D 感',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Poly style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/poly.jpg',
+  },
+  pop_art: {
+    name: '普普藝術風格',
+    desc: '班點網點 · 高對比 · 漫畫感',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Pop Art style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/pop_art.jpg',
+  },
+  rick_morty: {
+    name: '瑞克和莫蒂風格',
+    desc: '扭曲線條 · 誇張比例 · 成人動畫',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Rick Morty style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/rick_morty.jpg',
+  },
+  snoopy: {
+    name: '史努比風格',
+    desc: '簡單線條 · 黑白漫畫 · 圓潤特徵',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Snoopy style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/snoopy.jpg',
+  },
+  vector: {
+    name: '向量風格',
+    desc: '幾何形狀 · 漸層填色 · 銳利邊緣',
+    color: 'var(--accent)',
+    loraName: 'Kontext_OmniConsistency_lora .safetensors',
+    prompt: 'transform it into Vector style, while strictly preserving the original structure, pose, and composition unchanged',
+    saveNodeId: '509',
+    preview: 'img/vector.jpg',
   },
 };
 
@@ -618,21 +1154,167 @@ function saveSettings() {
   showStatus('設定已儲存', 'info');
 }
 
+// ─── Style Picker ─────────────────────────────────────────────────────────────
+var STYLE_GROUPS = [
+  { label: '原版風格', keys: ['ghibli','jojo','van','picasso','chibi'] },
+  { label: '更多風格', keys: ['american_cartoon','chinese_ink','clay_toy','fabric','irasutoya',
+      'lego','line_style','macaron','oil_painting','origami',
+      'paper_cutting','pixel','poly','pop_art','rick_morty','snoopy','vector'] }
+];
+var STYLE_EMOJIS = {
+  ghibli:'🌸', jojo:'⚡', van:'🎨', picasso:'🧩', chibi:'🎮',
+  american_cartoon:'🦸', chinese_ink:'🖌️', clay_toy:'🧸', fabric:'🧶',
+  irasutoya:'📎', lego:'🧱', line_style:'✏️', macaron:'🍬',
+  oil_painting:'🖼️', origami:'📄', paper_cutting:'✂️', pixel:'👾',
+  poly:'🔷', pop_art:'🎭', rick_morty:'🧬', snoopy:'🐶', vector:'📐'
+};
+var pickerPending = 'ghibli';
+
+function buildPickerCards() {
+  var grid = document.getElementById('pickerGrid');
+  grid.innerHTML = '';
+  STYLE_GROUPS.forEach(function(group) {
+    var label = document.createElement('div');
+    label.className = 'picker-section-label';
+    label.setAttribute('data-section', group.label);
+    label.textContent = group.label;
+    grid.appendChild(label);
+    group.keys.forEach(function(key) {
+      var s = STYLES[key];
+      var card = document.createElement('div');
+      card.className = 'style-card' + (key === pickerPending ? ' selected' : '');
+      card.setAttribute('data-key', key);
+      card.setAttribute('data-search', (s.name + ' ' + key).toLowerCase());
+      card.onclick = function() { pickCard(key); };
+      var imgWrap = document.createElement('div');
+      imgWrap.className = 'style-card-img';
+      var emoji = document.createElement('span');
+      emoji.className = 'card-emoji';
+      emoji.textContent = STYLE_EMOJIS[key] || '🎨';
+      imgWrap.appendChild(emoji);
+      var img = document.createElement('img');
+      img.alt = s.name;
+      img.onload = function() { img.classList.add('loaded'); imgWrap.classList.add('has-img'); };
+      img.src = s.preview;
+      imgWrap.appendChild(img);
+      var check = document.createElement('div');
+      check.className = 'check-badge';
+      check.textContent = '✓';
+      var info = document.createElement('div');
+      info.className = 'style-card-info';
+      info.innerHTML = '<div class="style-card-name">' + s.name + '</div>' +
+                       '<div class="style-card-desc">' + s.desc + '</div>';
+      card.appendChild(imgWrap);
+      card.appendChild(check);
+      card.appendChild(info);
+      grid.appendChild(card);
+    });
+  });
+  var nr = document.createElement('div');
+  nr.className = 'picker-no-results';
+  nr.id = 'pickerNoResults';
+  nr.innerHTML = '<div class="nr-icon">🔍</div>找不到符合的風格';
+  grid.appendChild(nr);
+}
+
+function pickCard(key) {
+  pickerPending = key;
+  document.querySelectorAll('.style-card').forEach(function(c) {
+    c.classList.toggle('selected', c.getAttribute('data-key') === key);
+  });
+  document.getElementById('pickerSelectedInfo').innerHTML =
+    '已選擇：<strong>' + STYLES[key].name + '</strong>';
+}
+
+function openPicker() {
+  pickerPending = currentStyle;
+  buildPickerCards();
+  document.getElementById('pickerSearch').value = '';
+  document.getElementById('pickerSelectedInfo').innerHTML =
+    '已選擇：<strong>' + STYLES[currentStyle].name + '</strong>';
+  document.getElementById('pickerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function() {
+    var sel = document.querySelector('.style-card.selected');
+    if (sel) sel.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 80);
+}
+
+function closePicker() {
+  document.getElementById('pickerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function onPickerOverlayClick(e) {
+  if (e.target === document.getElementById('pickerOverlay')) closePicker();
+}
+
+function confirmPicker() {
+  selectStyle(pickerPending);
+  closePicker();
+}
+
+function filterCards(q) {
+  var term = q.toLowerCase().trim();
+  var cards = document.querySelectorAll('.style-card');
+  var visiblePerSection = {};
+  STYLE_GROUPS.forEach(function(g) { visiblePerSection[g.label] = 0; });
+  cards.forEach(function(card) {
+    var show = !term || card.getAttribute('data-search').indexOf(term) >= 0;
+    card.style.display = show ? '' : 'none';
+    if (show) {
+      STYLE_GROUPS.forEach(function(g) {
+        if (g.keys.indexOf(card.getAttribute('data-key')) >= 0) visiblePerSection[g.label]++;
+      });
+    }
+  });
+  document.querySelectorAll('.picker-section-label').forEach(function(s) {
+    s.style.display = visiblePerSection[s.getAttribute('data-section')] ? '' : 'none';
+  });
+  var nr = document.getElementById('pickerNoResults');
+  var any = Object.values(visiblePerSection).some(function(v) { return v > 0; });
+  if (nr) nr.style.display = any ? 'none' : 'block';
+}
+
 // ─── Style Selection ──────────────────────────────────────────────────────────
-function selectStyle(style, btn) {
+function selectStyle(style) {
   currentStyle = style;
-
-  document.querySelectorAll('.style-tab').forEach(function(t) { t.classList.remove('active'); });
-  btn.classList.add('active');
-
   var s = STYLES[style];
+
+  // Chip
+  document.getElementById('chipName').textContent = s.name;
+  document.getElementById('chipName').style.color = s.color;
+  document.getElementById('chipDesc').textContent = s.desc;
+  document.getElementById('chipEmoji').textContent = STYLE_EMOJIS[style] || '🎨';
+  var chipThumb = document.getElementById('chipThumb');
+  var chipImg   = document.getElementById('chipImg');
+  chipImg.onload  = function() { chipImg.classList.add('loaded'); chipThumb.classList.add('has-img'); };
+  chipImg.onerror = function() { chipImg.classList.remove('loaded'); chipThumb.classList.remove('has-img'); };
+  chipImg.classList.remove('loaded'); chipThumb.classList.remove('has-img');
+  chipImg.src = s.preview;
+
+  // Bottom bar
   document.getElementById('styleDot').style.background = s.color;
   document.getElementById('styleName').style.color = s.color;
   document.getElementById('styleName').textContent = s.name;
   document.getElementById('styleDesc').textContent = s.desc;
 
-  var sb = document.getElementById('submitBtn');
-  sb.className = 'submit-btn style-' + style;
+  // Submit btn
+  var knownStyles = ['ghibli','jojo','van','picasso','chibi'];
+  document.getElementById('submitBtn').className =
+    'submit-btn style-' + (knownStyles.indexOf(style) >= 0 ? style : 'other');
+}
+
+function selectStyleFromDropdown(style) { selectStyle(style); }
+
+function pickRandomStyle() {
+  var keys = Object.keys(STYLES);
+  var choices = keys.filter(function(k) { return k !== currentStyle; });
+  var picked = choices[Math.floor(Math.random() * choices.length)];
+  var btn = document.getElementById('randomBtn');
+  btn.classList.add('rolling');
+  setTimeout(function() { btn.classList.remove('rolling'); }, 420);
+  selectStyle(picked);
 }
 
 // ─── File Handling ────────────────────────────────────────────────────────────
@@ -716,11 +1398,13 @@ function hideStatus() {
 }
 
 // ─── Build Workflow JSON ────────────────────────────────────────────────────────
+// 所有 style 結構：UNETLoader → Style LoRA → Hand v2 LoRA → KSampler
+// 每個 style 用固定 node ID，避免衝突
 function buildWorkflow(imageName, style) {
   var s = STYLES[style];
   var seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 
-  // Shared nodes
+  // ── 共用節點 ──────────────────────────────────────────────
   var wf = {
     "38": {
       "inputs": { "clip_name1": "clip_l.safetensors", "clip_name2": "t5xxl_fp8_e4m3fn_scaled.safetensors", "type": "flux", "device": "default" },
@@ -744,12 +1428,17 @@ function buildWorkflow(imageName, style) {
     }
   };
 
-  // Style-specific nodes
+  // ── 各 style 節點（含 Hand v2 第二層 LoRA）────────────────
   if (style === 'ghibli') {
+    // 原版 Ghibli workflow（node ID 完全保留自 JSON）
     Object.assign(wf, {
-      "272": {
+      "403": {
         "inputs": { "lora_name": s.loraName, "strength_model": 1, "model": ["271", 0] },
-        "class_type": "LoraLoaderModelOnly"
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Ghibli LoRA" }
+      },
+      "404": {
+        "inputs": { "lora_name": "Hand v2.safetensors", "strength_model": 1, "model": ["403", 0] },
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Hand v2" }
       },
       "6": {
         "inputs": { "text": s.prompt, "clip": ["38", 0] },
@@ -773,7 +1462,7 @@ function buildWorkflow(imageName, style) {
       },
       "249": {
         "inputs": { "seed": seed, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1,
-          "model": ["272", 0], "positive": ["35", 0], "negative": ["135", 0], "latent_image": ["124", 0] },
+          "model": ["404", 0], "positive": ["35", 0], "negative": ["135", 0], "latent_image": ["124", 0] },
         "class_type": "KSampler"
       },
       "196": { "inputs": { "samples": ["249", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
@@ -784,7 +1473,11 @@ function buildWorkflow(imageName, style) {
     Object.assign(wf, {
       "283": {
         "inputs": { "lora_name": s.loraName, "strength_model": 1, "model": ["271", 0] },
-        "class_type": "LoraLoaderModelOnly"
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "JoJo LoRA" }
+      },
+      "405": {
+        "inputs": { "lora_name": "Hand v2.safetensors", "strength_model": 1, "model": ["283", 0] },
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Hand v2" }
       },
       "274": {
         "inputs": { "text": s.prompt, "clip": ["38", 0] },
@@ -808,7 +1501,7 @@ function buildWorkflow(imageName, style) {
       },
       "279": {
         "inputs": { "seed": seed, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1,
-          "model": ["283", 0], "positive": ["276", 0], "negative": ["277", 0], "latent_image": ["278", 0] },
+          "model": ["405", 0], "positive": ["276", 0], "negative": ["277", 0], "latent_image": ["278", 0] },
         "class_type": "KSampler"
       },
       "280": { "inputs": { "samples": ["279", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
@@ -819,7 +1512,11 @@ function buildWorkflow(imageName, style) {
     Object.assign(wf, {
       "291": {
         "inputs": { "lora_name": s.loraName, "strength_model": 1, "model": ["271", 0] },
-        "class_type": "LoraLoaderModelOnly"
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Van Gogh LoRA" }
+      },
+      "406": {
+        "inputs": { "lora_name": "Hand v2.safetensors", "strength_model": 1, "model": ["291", 0] },
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Hand v2" }
       },
       "292": {
         "inputs": { "text": s.prompt, "clip": ["38", 0] },
@@ -843,7 +1540,7 @@ function buildWorkflow(imageName, style) {
       },
       "288": {
         "inputs": { "seed": seed, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1,
-          "model": ["291", 0], "positive": ["285", 0], "negative": ["286", 0], "latent_image": ["287", 0] },
+          "model": ["406", 0], "positive": ["285", 0], "negative": ["286", 0], "latent_image": ["287", 0] },
         "class_type": "KSampler"
       },
       "289": { "inputs": { "samples": ["288", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
@@ -854,7 +1551,11 @@ function buildWorkflow(imageName, style) {
     Object.assign(wf, {
       "302": {
         "inputs": { "lora_name": s.loraName, "strength_model": 1, "model": ["271", 0] },
-        "class_type": "LoraLoaderModelOnly"
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Picasso LoRA" }
+      },
+      "407": {
+        "inputs": { "lora_name": "Hand v2.safetensors", "strength_model": 1, "model": ["302", 0] },
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Hand v2" }
       },
       "305": {
         "inputs": { "text": s.prompt, "clip": ["38", 0] },
@@ -878,7 +1579,7 @@ function buildWorkflow(imageName, style) {
       },
       "303": {
         "inputs": { "seed": seed, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1,
-          "model": ["302", 0], "positive": ["308", 0], "negative": ["304", 0], "latent_image": ["300", 0] },
+          "model": ["407", 0], "positive": ["308", 0], "negative": ["304", 0], "latent_image": ["300", 0] },
         "class_type": "KSampler"
       },
       "301": { "inputs": { "samples": ["303", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
@@ -889,7 +1590,11 @@ function buildWorkflow(imageName, style) {
     Object.assign(wf, {
       "318": {
         "inputs": { "lora_name": s.loraName, "strength_model": 1, "model": ["271", 0] },
-        "class_type": "LoraLoaderModelOnly"
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Chibi LoRA" }
+      },
+      "408": {
+        "inputs": { "lora_name": "Hand v2.safetensors", "strength_model": 1, "model": ["318", 0] },
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Hand v2" }
       },
       "317": {
         "inputs": { "text": s.prompt, "clip": ["38", 0] },
@@ -913,11 +1618,51 @@ function buildWorkflow(imageName, style) {
       },
       "315": {
         "inputs": { "seed": seed, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1,
-          "model": ["318", 0], "positive": ["312", 0], "negative": ["310", 0], "latent_image": ["309", 0] },
+          "model": ["408", 0], "positive": ["312", 0], "negative": ["310", 0], "latent_image": ["309", 0] },
         "class_type": "KSampler"
       },
       "316": { "inputs": { "samples": ["315", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
       "314": { "inputs": { "filename_prefix": "ComfyUI", "images": ["316", 0] }, "class_type": "SaveImage" }
+    });
+
+  } else {
+    // ── 其他 17 種風格：通用雙 LoRA 結構（node ID 500 系列）──
+    Object.assign(wf, {
+      "500": {
+        "inputs": { "lora_name": s.loraName, "strength_model": 1, "model": ["271", 0] },
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Style LoRA" }
+      },
+      "501": {
+        "inputs": { "lora_name": "Hand v2.safetensors", "strength_model": 1, "model": ["500", 0] },
+        "class_type": "LoraLoaderModelOnly", "_meta": { "title": "Hand v2" }
+      },
+      "502": {
+        "inputs": { "text": s.prompt, "clip": ["38", 0] },
+        "class_type": "CLIPTextEncode"
+      },
+      "503": {
+        "inputs": { "conditioning": ["502", 0] },
+        "class_type": "ConditioningZeroOut"
+      },
+      "504": {
+        "inputs": { "pixels": ["251", 0], "vae": ["39", 0] },
+        "class_type": "VAEEncode"
+      },
+      "505": {
+        "inputs": { "conditioning": ["502", 0], "latent": ["504", 0] },
+        "class_type": "ReferenceLatent"
+      },
+      "506": {
+        "inputs": { "guidance": 2.5, "conditioning": ["505", 0] },
+        "class_type": "FluxGuidance"
+      },
+      "507": {
+        "inputs": { "seed": seed, "steps": 20, "cfg": 1, "sampler_name": "euler", "scheduler": "simple", "denoise": 1,
+          "model": ["501", 0], "positive": ["506", 0], "negative": ["503", 0], "latent_image": ["504", 0] },
+        "class_type": "KSampler"
+      },
+      "508": { "inputs": { "samples": ["507", 0], "vae": ["39", 0] }, "class_type": "VAEDecode" },
+      "509": { "inputs": { "filename_prefix": "ComfyUI", "images": ["508", 0] }, "class_type": "SaveImage" }
     });
   }
 
@@ -1022,11 +1767,7 @@ function downloadResult() {
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 (function init() {
-  var s = STYLES['ghibli'];
-  document.getElementById('styleDot').style.background = s.color;
-  document.getElementById('styleName').style.color = s.color;
-  document.getElementById('styleName').textContent = s.name;
-  document.getElementById('styleDesc').textContent = s.desc;
+  selectStyle('ghibli');
 })();
 </script>
 </body>
