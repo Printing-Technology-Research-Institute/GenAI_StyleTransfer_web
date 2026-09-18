@@ -4,22 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>風格魔法師</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0d0d0f;
-  --surface: #16161a;
-  --surface2: #1e1e24;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.15);
-  --accent: #c8a96e;
-  --accent2: #e8c990;
-  --text: #f0ede6;
-  --muted: #8a8680;
-  --danger: #c0614a;
-  --success: #5a9e6f;
+  --bg: #0f0e17;
+  --surface: #181724;
+  --surface2: #211f32;
+  --surface3: #2a2840;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+
+  /* 主色：珊瑚橙 */
+  --c1: #ff6b6b;
+  --c1g: #ff8e53;
+  /* 配色：青綠 */
+  --c2: #4ecdc4;
+  --c2d: #2bb5ab;
+  /* 強調：亮黃 */
+  --c3: #ffe66d;
+  /* 紫 */
+  --c4: #a78bfa;
+  /* 粉 */
+  --c5: #f472b6;
+
+  --text: #f5f3ff;
+  --muted: #8b89a8;
+  --danger: #ff6b6b;
+  --success: #4ecdc4;
+
+  --radius: 16px;
+  --font: 'M PLUS Rounded 1c', 'Zen Maru Gothic', sans-serif;
 }
 
 html, body { height: 100%; overflow: hidden; }
@@ -27,39 +43,57 @@ html, body { height: 100%; overflow: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font);
   display: flex;
   flex-direction: column;
   height: 100vh;
 }
 
-/* Top bar */
+/* ── 背景裝飾 ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 10%, rgba(255,107,107,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 35% at 90% 80%, rgba(78,205,196,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 80% 15%, rgba(167,139,250,0.06) 0%, transparent 70%);
+}
+
+/* ── Topbar ── */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  height: 54px;
-  border-bottom: 0.5px solid var(--border2);
+  height: 60px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   flex-shrink: 0;
+  position: relative; z-index: 1;
+  background: rgba(15,14,23,0.85);
+  backdrop-filter: blur(12px);
 }
 
 .topbar-title {
-  font-family: 'Noto Serif TC', serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 900;
+  background: linear-gradient(120deg, var(--c1), var(--c3), var(--c2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  letter-spacing: 0.02em;
 }
 
-.topbar-sub {
+.topbar-badge {
   font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-left: 12px;
+  background: linear-gradient(135deg, var(--c4), var(--c5));
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 99px;
+  margin-left: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  vertical-align: middle;
 }
 
 .api-pill {
@@ -67,209 +101,282 @@ body {
   align-items: center;
   gap: 8px;
   background: var(--surface2);
-  border: 0.5px solid var(--border2);
+  border: 1px solid var(--border2);
   border-radius: 999px;
-  padding: 6px 14px;
-  transition: border-color 0.2s;
+  padding: 7px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-
-.api-pill:focus-within { border-color: var(--accent); }
-
+.api-pill:focus-within {
+  border-color: var(--c2);
+  box-shadow: 0 0 0 3px rgba(78,205,196,0.15);
+}
 .api-pill-dot {
-  width: 7px; height: 7px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--border2);
   flex-shrink: 0;
   transition: background 0.3s;
 }
-.api-pill-dot.ok { background: var(--success); }
-
+.api-pill-dot.ok { background: var(--success); box-shadow: 0 0 6px var(--success); }
 .api-pill input {
   background: none; border: none; outline: none;
   color: var(--text);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font);
+  font-size: 0.78rem;
   width: 210px;
 }
 .api-pill input::placeholder { color: var(--muted); }
-
 .toggle-key-sm {
   background: none; border: none;
   color: var(--muted); cursor: pointer;
-  font-size: 0.65rem; font-family: 'Space Mono', monospace;
-  letter-spacing: 0.04em; padding: 0;
+  font-size: 0.68rem; font-family: var(--font);
+  padding: 0;
+  transition: color 0.15s;
 }
-.toggle-key-sm:hover { color: var(--text); }
+.toggle-key-sm:hover { color: var(--c2); }
 
-/* Workspace */
+/* ── Workspace ── */
 .workspace {
   display: grid;
   grid-template-columns: minmax(420px, 44%) 1fr;
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  position: relative; z-index: 1;
 }
 
-/* Left panel */
+/* ── Left panel ── */
 .left-panel {
-  border-right: 0.5px solid var(--border2);
+  border-right: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  background: rgba(15,14,23,0.6);
 }
+.left-panel::-webkit-scrollbar { width: 4px; }
+.left-panel::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
 
-.left-panel::-webkit-scrollbar { width: 3px; }
-.left-panel::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
+/* ── Section ── */
 .section {
-  padding: 1.1rem 1.3rem;
-  border-bottom: 0.5px solid var(--border);
+  padding: 1.2rem 1.4rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
 .section-label {
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .step-num {
-  width: 18px; height: 18px;
+  width: 22px; height: 22px;
   border-radius: 50%;
-  background: var(--surface2);
-  border: 0.5px solid var(--border2);
+  background: var(--surface3);
+  border: 1.5px solid var(--border2);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.58rem; color: var(--muted);
-  flex-shrink: 0; transition: all 0.2s;
+  font-size: 0.65rem; font-weight: 800; color: var(--muted);
+  flex-shrink: 0; transition: all 0.25s;
 }
 .step-num.done {
-  background: rgba(200,169,110,0.15);
-  border-color: var(--accent);
-  color: var(--accent);
+  background: linear-gradient(135deg, var(--c1), var(--c1g));
+  border-color: var(--c1);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255,107,107,0.5);
 }
 
-/* Upload */
+/* ── Upload ── */
 .upload-zone {
-  border: 1.5px dashed var(--border2);
-  border-radius: 11px;
-  padding: 1.6rem 1rem;
+  border: 2px dashed rgba(255,255,255,0.15);
+  border-radius: var(--radius);
+  padding: 1.8rem 1rem;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   position: relative;
   overflow: hidden;
+  background: var(--surface2);
 }
 .upload-zone:hover, .upload-zone.drag-over {
-  border-color: var(--accent);
-  background: rgba(200,169,110,0.04);
+  border-color: var(--c2);
+  background: rgba(78,205,196,0.05);
+  box-shadow: 0 0 20px rgba(78,205,196,0.1);
 }
 .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.upload-zone svg { opacity: 0.35; margin-bottom: 0.5rem; }
-.upload-zone strong { display: block; font-size: 0.78rem; color: var(--text); margin-bottom: 0.2rem; }
-.upload-zone p { font-size: 0.68rem; color: var(--muted); line-height: 1.7; }
+.upload-zone .up-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+.upload-zone strong { display: block; font-size: 0.9rem; font-weight: 800; color: var(--text); margin-bottom: 0.25rem; }
+.upload-zone p { font-size: 0.7rem; color: var(--muted); line-height: 1.7; }
 
 .thumb-wrap {
   display: none;
   position: relative;
-  border-radius: 11px;
+  border-radius: var(--radius);
   overflow: hidden;
   aspect-ratio: 4/3;
   background: var(--surface2);
+  border: 1px solid var(--border2);
 }
 .thumb-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .thumb-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(to bottom, transparent 55%, rgba(13,13,15,0.85));
+  background: linear-gradient(to bottom, transparent 55%, rgba(10,9,20,0.88));
 }
 .thumb-name {
-  position: absolute; bottom: 9px; left: 11px;
-  font-size: 0.65rem; color: rgba(255,255,255,0.5);
+  position: absolute; bottom: 10px; left: 12px;
+  font-size: 0.68rem; color: rgba(255,255,255,0.55);
   max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .thumb-change {
-  position: absolute; bottom: 9px; right: 9px;
-  background: rgba(255,255,255,0.1);
-  border: 0.5px solid var(--border2);
-  border-radius: 6px; color: var(--text); cursor: pointer;
-  padding: 4px 11px; font-size: 0.65rem;
-  font-family: 'Space Mono', monospace; letter-spacing: 0.04em;
+  position: absolute; bottom: 10px; right: 10px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px; color: var(--text); cursor: pointer;
+  padding: 5px 13px; font-size: 0.7rem; font-weight: 700;
+  font-family: var(--font);
+  transition: all 0.15s;
 }
-.thumb-change:hover { background: rgba(255,255,255,0.2); }
+.thumb-change:hover { background: rgba(255,255,255,0.22); }
 
-/* Style grid */
+/* ── Tab row ── */
+.tab-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.tab-btn {
+  flex: 1;
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  border-radius: 12px;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn:hover { border-color: var(--c2); color: var(--c2); background: rgba(78,205,196,0.05); }
+.tab-btn.active {
+  background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(255,142,83,0.1));
+  border-color: var(--c1);
+  color: var(--c1);
+  box-shadow: 0 0 12px rgba(255,107,107,0.2);
+}
+
+.sub-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+/* ── Style grid (角色 / 畫風) ── */
 .style-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px;
+  gap: 8px;
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
+.style-grid::-webkit-scrollbar { width: 3px; }
+.style-grid::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
 
 .style-btn {
   background: var(--surface2);
-  border: 0.5px solid var(--border);
-  border-radius: 10px;
-  padding: 0.7rem 0.75rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.8rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.18s;
   text-align: left;
-}
-.style-btn:hover { border-color: var(--accent); background: rgba(200,169,110,0.05); }
-.style-btn.selected {
-  border-color: var(--accent);
-  background: rgba(200,169,110,0.09);
-  box-shadow: inset 0 0 0 1px rgba(200,169,110,0.2);
-}
-.style-btn .emoji { font-size: 1.2rem; display: block; margin-bottom: 0.28rem; }
-.style-btn .name { font-size: 0.78rem; font-weight: 700; color: var(--text); display: block; }
-.style-btn .desc { font-size: 0.62rem; color: var(--muted); margin-top: 1px; display: block; }
-
-/* Error */
-#error-msg {
-  display: none;
-  margin: 0.6rem 1.3rem 0;
-  padding: 9px 13px;
-  background: rgba(192,97,74,0.1);
-  border: 0.5px solid var(--danger);
-  border-radius: 8px;
-  color: #e07a65;
-  font-size: 0.7rem;
-  line-height: 1.6;
-}
-
-/* Generate button */
-.generate-wrap { padding: 0.9rem 1.3rem 1.3rem; }
-
-#generate-btn {
-  width: 100%;
-  background: var(--accent);
-  color: #1a1408;
-  border: none;
-  border-radius: 10px;
-  padding: 13px;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.83rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: all 0.2s;
   position: relative;
   overflow: hidden;
 }
-#generate-btn:hover:not(:disabled) { background: var(--accent2); transform: translateY(-1px); }
-#generate-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.style-btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,230,109,0.06), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.style-btn:hover { border-color: var(--c3); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.style-btn:hover::after { opacity: 1; }
+.style-btn.selected {
+  border-color: var(--c2);
+  background: rgba(78,205,196,0.08);
+  box-shadow: 0 0 14px rgba(78,205,196,0.2), inset 0 0 0 1px rgba(78,205,196,0.15);
+  transform: translateY(-2px);
+}
+.style-btn .emoji { font-size: 1.5rem; display: block; margin-bottom: 0.3rem; }
+.style-btn .name { font-size: 0.85rem; font-weight: 800; color: var(--text); display: block; }
+.style-btn .desc { font-size: 0.68rem; color: var(--muted); margin-top: 2px; display: block; line-height: 1.4; }
+
+/* ── Error ── */
+#error-msg {
+  display: none;
+  margin: 0.6rem 1.4rem 0;
+  padding: 10px 14px;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.35);
+  border-radius: 10px;
+  color: #ff9a9a;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+/* ── Generate button ── */
+.generate-wrap { padding: 1rem 1.4rem 1.4rem; }
+
+#generate-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--c1), var(--c1g));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--font);
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(255,107,107,0.35);
+}
+#generate-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent 60%);
+  border-radius: inherit;
+}
+#generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(255,107,107,0.5);
+  filter: brightness(1.1);
+}
+#generate-btn:active:not(:disabled) { transform: translateY(0); }
+#generate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .loading-bar {
   position: absolute; left: 0; top: 0; bottom: 0;
-  width: 0%; background: rgba(255,255,255,0.18);
+  width: 0%;
+  background: rgba(255,255,255,0.22);
   transition: width 0.5s ease;
+  border-radius: inherit;
 }
 
-/* Right panel */
+/* ── Right panel ── */
 .right-panel {
   display: flex;
   flex-direction: column;
@@ -281,43 +388,71 @@ body {
   min-height: 0;
 }
 
-/* Empty state */
+/* 右側裝飾光圈 */
+.right-panel::before {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(78,205,196,0.06) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ── Empty state ── */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.2rem;
+  animation: floatUp 3s ease-in-out infinite alternate;
 }
-.empty-state svg { opacity: 0.2; }
-.empty-state p { font-size: 0.75rem; color: var(--muted); text-align: center; line-height: 1.9; }
+@keyframes floatUp { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+.empty-state .empty-icon { font-size: 4rem; filter: drop-shadow(0 0 16px rgba(78,205,196,0.4)); }
+.empty-state p { font-size: 0.85rem; color: var(--muted); text-align: center; line-height: 2; font-weight: 700; }
 
-/* Loading overlay */
+/* ── Loading overlay ── */
 #loading-overlay {
   display: none;
   position: absolute; inset: 0;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 1.2rem;
-  background: rgba(13,13,15,0.55);
-  backdrop-filter: blur(6px);
+  gap: 1.5rem;
+  background: rgba(10,9,20,0.6);
+  backdrop-filter: blur(10px);
   z-index: 10;
 }
 #loading-overlay.active { display: flex; }
 
 .spinner {
-  width: 38px; height: 38px;
-  border: 2px solid var(--border2);
-  border-top-color: var(--accent);
+  width: 50px; height: 50px;
   border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+  border: 3px solid rgba(255,255,255,0.08);
+  border-top-color: var(--c1);
+  border-right-color: var(--c3);
+  animation: spin 0.7s linear infinite;
+  box-shadow: 0 0 20px rgba(255,107,107,0.3);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.loading-msg { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; }
-.loading-tip { font-size: 0.62rem; color: var(--border2); letter-spacing: 0.08em; margin-top: 3px; text-align: center; }
+.loading-msg {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: 0.08em;
+  background: linear-gradient(120deg, var(--c1), var(--c3), var(--c2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 2s linear infinite;
+  background-size: 200%;
+}
+@keyframes shimmer { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+.loading-tip { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.08em; margin-top: 4px; text-align: center; font-weight: 700; }
 
-/* Result */
+/* ── Result ── */
 #result-area {
   display: none;
   width: 100%;
@@ -325,61 +460,233 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.9rem;
-  animation: fadeUp 0.35s ease;
+  gap: 1.1rem;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
 .result-img-container {
   position: relative;
-  border-radius: 13px;
+  border-radius: 18px;
   overflow: hidden;
-  border: 0.5px solid var(--border2);
+  border: 2px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
   max-width: 100%;
 }
 .result-img-container img {
   display: block;
   max-width: 100%;
-  max-height: calc(100vh - 54px - 120px);
+  max-height: calc(100vh - 54px - 140px);
   object-fit: contain;
 }
 .result-badge {
-  position: absolute; top: 11px; left: 11px;
-  background: rgba(13,13,15,0.7);
-  border: 0.5px solid var(--border2);
-  border-radius: 6px;
-  padding: 3px 10px;
-  font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent);
+  position: absolute; top: 12px; left: 12px;
+  background: linear-gradient(135deg, rgba(15,14,23,0.85), rgba(30,28,50,0.85));
+  border: 1px solid rgba(78,205,196,0.35);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; color: var(--c2);
+  backdrop-filter: blur(6px);
 }
 
-.result-actions { display: flex; gap: 8px; }
+.result-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.cost-tag {
+  font-size: 0.68rem;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.cost-tag .cost-val { color: var(--c3); font-weight: 800; }
 
 .btn-action {
   background: var(--surface2);
-  border: 0.5px solid var(--border2);
-  border-radius: 8px;
-  padding: 9px 18px;
+  border: 1.5px solid var(--border2);
+  border-radius: 12px;
+  padding: 11px 22px;
   color: var(--text);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: var(--font);
+  font-size: 0.85rem; font-weight: 800;
+  letter-spacing: 0.04em;
   cursor: pointer; text-decoration: none;
-  display: inline-flex; align-items: center; gap: 5px;
-  transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.18s;
 }
-.btn-action:hover { border-color: var(--accent); color: var(--accent); }
+.btn-action:hover { border-color: var(--c2); color: var(--c2); box-shadow: 0 0 12px rgba(78,205,196,0.2); transform: translateY(-1px); }
 
 .btn-action.primary {
-  background: var(--accent); border-color: var(--accent); color: #1a1408;
+  background: linear-gradient(135deg, var(--c2), var(--c2d));
+  border-color: transparent;
+  color: #0f1e1d;
+  box-shadow: 0 4px 16px rgba(78,205,196,0.3);
 }
-.btn-action.primary:hover { background: var(--accent2); border-color: var(--accent2); color: #1a1408; }
+.btn-action.primary:hover { filter: brightness(1.1); box-shadow: 0 6px 22px rgba(78,205,196,0.45); color: #0f1e1d; }
+
+/* ── Product selector ── */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.product-btn {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+}
+.product-btn:hover { border-color: var(--c4); background: rgba(167,139,250,0.06); transform: translateY(-2px); }
+.product-btn.selected {
+  border-color: var(--c4);
+  background: rgba(167,139,250,0.1);
+  box-shadow: 0 0 14px rgba(167,139,250,0.2);
+  transform: translateY(-2px);
+}
+.product-btn .p-emoji { font-size: 1.6rem; display: block; margin-bottom: 0.3rem; }
+.product-btn .p-name  { font-size: 0.8rem; font-weight: 800; color: var(--text); display: block; }
+
+/* ── 模型 / 畫質對照 ── */
+.option-row { display: flex; gap: 8px; }
+.option-btn {
+  flex: 1;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 0.7rem;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: left;
+  font-family: var(--font);
+  color: inherit;
+}
+.option-btn:hover { border-color: var(--c4); background: rgba(167,139,250,0.06); transform: translateY(-1px); }
+.option-btn.selected {
+  border-color: var(--c4);
+  background: rgba(167,139,250,0.1);
+  box-shadow: 0 0 14px rgba(167,139,250,0.2);
+}
+.option-btn .o-name { font-size: 0.82rem; font-weight: 800; color: var(--text); display: block; }
+.option-btn .o-desc { font-size: 0.64rem; color: var(--muted); margin-top: 3px; display: block; line-height: 1.45; font-weight: 700; }
+.option-note {
+  margin-top: 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1.7;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border-left: 3px solid var(--c3);
+}
+
+/* ── Size buttons ── */
+.size-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.7rem; }
+.size-btn {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-width: 74px;
+}
+.size-btn:hover { border-color: var(--c5); transform: translateY(-1px); }
+.size-btn.selected {
+  border-color: var(--c5);
+  background: rgba(244,114,182,0.1);
+  box-shadow: 0 0 12px rgba(244,114,182,0.2);
+}
+.size-btn .s-label { font-size: 0.78rem; font-weight: 800; color: var(--text); }
+.size-btn .s-ratio { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.04em; font-weight: 700; }
+.size-preview {
+  background: linear-gradient(135deg, rgba(244,114,182,0.3), rgba(167,139,250,0.3));
+  border: 1.5px solid rgba(244,114,182,0.5);
+  margin-bottom: 4px;
+}
+
+/* ── Prompt preview ── */
+.prompt-preview-wrap {
+  padding: 1rem 1.4rem 0.8rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.prompt-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+.prompt-preview-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.prompt-copy-btn {
+  background: var(--surface3);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.prompt-copy-btn:hover { border-color: var(--c2); color: var(--c2); }
+.prompt-copy-btn.copied { border-color: var(--success); color: var(--success); box-shadow: 0 0 8px rgba(78,205,196,0.2); }
+#prompt-preview-box {
+  width: 100%;
+  min-height: 88px;
+  max-height: 150px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: rgba(245,243,255,0.4);
+  font-family: 'M PLUS Rounded 1c', monospace;
+  font-size: 0.65rem;
+  line-height: 1.8;
+  outline: none;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: text;
+  transition: border-color 0.2s;
+}
+#prompt-preview-box:focus { border-color: var(--c2); color: rgba(245,243,255,0.7); }
+#prompt-preview-box::-webkit-scrollbar { width: 3px; }
+#prompt-preview-box::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+#size-hint {
+  margin-top: 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1.7;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border-left: 3px solid var(--c5);
+  display: none;
+}
+#size-hint:not(:empty) { display: block; }
 
 @media (max-width: 720px) {
   html, body { overflow: auto; }
   .workspace { grid-template-columns: 1fr; }
-  .right-panel { min-height: 380px; border-top: 0.5px solid var(--border2); }
+  .right-panel { min-height: 380px; border-top: 1px solid rgba(255,255,255,0.06); }
   .api-pill input { width: 130px; }
-  .topbar-sub { display: none; }
+  .topbar-badge { display: none; }
 }
 </style>
 </head>
@@ -387,8 +694,8 @@ body {
 
 <div class="topbar">
   <div style="display:flex;align-items:center;">
-    <span class="topbar-title">風格魔法師</span>
-    <span class="topbar-sub">GPT Image 1.5</span>
+    <span class="topbar-title">✦ 風格魔法師</span>
+    <span class="topbar-badge" id="model-badge">GPT Image 2.5 Flare</span>
   </div>
   <div class="api-pill">
     <div class="api-pill-dot" id="key-dot"></div>
@@ -408,14 +715,9 @@ body {
       </div>
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="file-input" accept="image/*">
-        <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
-          <rect x="6" y="10" width="36" height="28" rx="4" stroke="#c8a96e" stroke-width="1.5"/>
-          <circle cx="17" cy="20" r="3.5" stroke="#c8a96e" stroke-width="1.5"/>
-          <path d="M6 32 L15 23 L22 30 L30 22 L42 34" stroke="#c8a96e" stroke-width="1.5" stroke-linejoin="round"/>
-          <path d="M31 10 L31 4 M31 4 L28 7 M31 4 L34 7" stroke="#c8a96e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <span class="up-icon">🖼️</span>
         <strong>點擊選擇 或 拖曳圖片</strong>
-        <p>支援 JPG · PNG · WEBP<br>過大圖片會等比例縮至長邊約 1800px，維持原比例</p>
+        <p>支援 JPG · PNG · WEBP<br>過大圖片會等比例縮至長邊約 1800px</p>
       </div>
       <div class="thumb-wrap" id="thumb-wrap">
         <img id="thumb-img" src="" alt="預覽">
@@ -429,28 +731,208 @@ body {
       <div class="section-label">
         <span class="step-num done" id="step2-dot">2</span>選擇風格
       </div>
-      <div class="style-grid">
-        <div class="style-btn selected" data-style="ghibli" onclick="selectStyle(this)">
-          <span class="emoji">🌿</span>
-          <span class="name">吉卜力</span>
-          <span class="desc">宮崎駿手繪動畫</span>
+
+      <!-- Tab 切換 -->
+      <div class="tab-row">
+        <button class="tab-btn active" id="tab-museum" onclick="switchTab('museum')">🏛️ 考古館</button>
+        <button class="tab-btn" id="tab-other" onclick="switchTab('other')">✨ 其他風格</button>
+      </div>
+
+      <!-- 考古館 Panel -->
+      <div id="panel-museum">
+        <div class="sub-label">選擇角色</div>
+        <div class="style-grid">
+          <div class="style-btn selected" data-theme="archaeologist" onclick="selectTheme(this)">
+            <span class="emoji">🏺</span>
+            <span class="name">考古學家</span>
+            <span class="desc">穿考古服探索遺跡</span>
+          </div>
+          <div class="style-btn" data-theme="prehistoric" onclick="selectTheme(this)">
+            <span class="emoji">🔥</span>
+            <span class="name">史前人類</span>
+            <span class="desc">陶器與玉器文化</span>
+          </div>
+          <div class="style-btn" data-theme="ip" onclick="selectTheme(this)">
+            <span class="emoji">🤝</span>
+            <span class="name">與IP合照</span>
+            <span class="desc">與館方IP角色同框</span>
+          </div>
         </div>
-        <div class="style-btn" data-style="chibi" onclick="selectStyle(this)">
-          <span class="emoji">🎮</span>
-          <span class="name">Q 版</span>
-          <span class="desc">大頭可愛卡通</span>
-        </div>
-        <div class="style-btn" data-style="painting" onclick="selectStyle(this)">
-          <span class="emoji">🎨</span>
-          <span class="name">油畫</span>
-          <span class="desc">厚重印象派筆觸</span>
-        </div>
-        <div class="style-btn" data-style="sketch" onclick="selectStyle(this)">
-          <span class="emoji">✏️</span>
-          <span class="name">彩色素描</span>
-          <span class="desc">手繪彩鉛風格</span>
+
+        <div class="sub-label" style="margin-top:0.85rem;">選擇畫風</div>
+        <div class="style-grid">
+          <div class="style-btn" data-render="realistic" onclick="selectRender(this)">
+            <span class="emoji">📷</span>
+            <span class="name">寫實風</span>
+          </div>
+          <div class="style-btn selected" data-render="anime" onclick="selectRender(this)">
+            <span class="emoji">🎬</span>
+            <span class="name">動畫風</span>
+          </div>
+          <div class="style-btn" data-render="illustration" onclick="selectRender(this)">
+            <span class="emoji">🎨</span>
+            <span class="name">插畫風</span>
+          </div>
         </div>
       </div>
+
+      <!-- 其他風格 Panel -->
+      <div id="panel-other" style="display:none;">
+        <div class="style-grid">
+          <div class="style-btn" data-style="ugly" onclick="selectOtherStyle(this)">
+            <span class="emoji">🖍️</span>
+            <span class="name">醜陋塗鴉</span>
+            <span class="desc">Threads 爆紅爛畫風</span>
+          </div>
+          <div class="style-btn" data-style="scribble" onclick="selectOtherStyle(this)">
+            <span class="emoji">✏️</span>
+            <span class="name">潦草塗鴉風</span>
+            <span class="desc">手繪隨性可愛感</span>
+          </div>
+          <!-- <div class="style-btn" data-style="pikmin" onclick="selectOtherStyle(this)">
+            <span class="emoji">🌱</span>
+            <span class="name">皮克敏</span>
+            <span class="desc">任天堂微縮世界感</span>
+          </div> -->
+          <div class="style-btn" data-style="japan_illustration" onclick="selectOtherStyle(this)">
+            <span class="emoji">🎨</span>
+            <span class="name">日系插畫</span>
+            <span class="desc">Threads 氛圍插畫風</span>
+          </div>
+          <div class="style-btn" data-style="ghibli" onclick="selectOtherStyle(this)">
+            <span class="emoji">🌿</span>
+            <span class="name">吉卜力</span>
+            <span class="desc">宮崎駿動畫感</span>
+          </div>
+          <div class="style-btn" data-style="anime_movie" onclick="selectOtherStyle(this)">
+            <span class="emoji">🎬</span>
+            <span class="name">動畫電影</span>
+            <span class="desc">高級動漫電影感</span>
+          </div>
+          <div class="style-btn" data-style="scrapbook" onclick="selectOtherStyle(this)">
+            <span class="emoji">📒</span>
+            <span class="name">手帳貼紙</span>
+            <span class="desc">IG Scrapbook 風</span>
+          </div>
+          <div class="style-btn" data-style="painting" onclick="selectOtherStyle(this)">
+            <span class="emoji">🖌️</span>
+            <span class="name">油畫</span>
+            <span class="desc">厚塗印象派</span>
+          </div>
+          <div class="style-btn" data-style="sketch" onclick="selectOtherStyle(this)">
+            <span class="emoji">✏️</span>
+            <span class="name">彩色素描</span>
+            <span class="desc">手繪筆觸感</span>
+          </div>
+        </div>
+
+        <div class="sub-label" style="margin-top:0.85rem;">選擇背景</div>
+        <div class="style-grid">
+          <div class="style-btn selected" data-bg="original" onclick="selectBackground(this)">
+            <span class="emoji">📷</span>
+            <span class="name">原本背景</span>
+            <span class="desc">保留拍攝時的背景</span>
+          </div>
+          <div class="style-btn" data-bg="garden" onclick="selectBackground(this)">
+            <span class="emoji">🌸</span>
+            <span class="name">夢幻花園</span>
+            <span class="desc">花海與柔和陽光</span>
+          </div>
+          <div class="style-btn" data-bg="night_city" onclick="selectBackground(this)">
+            <span class="emoji">🌃</span>
+            <span class="name">璀璨夜景</span>
+            <span class="desc">城市燈光與夜色</span>
+          </div>
+          <div class="style-btn" data-bg="forest" onclick="selectBackground(this)">
+            <span class="emoji">🌲</span>
+            <span class="name">魔幻森林</span>
+            <span class="desc">灑落光影的森林</span>
+          </div>
+          <div class="style-btn" data-bg="cafe" onclick="selectBackground(this)">
+            <span class="emoji">☕</span>
+            <span class="name">復古咖啡廳</span>
+            <span class="desc">溫暖木質調氛圍</span>
+          </div>
+          <div class="style-btn" data-bg="beach" onclick="selectBackground(this)">
+            <span class="emoji">🏖️</span>
+            <span class="name">海灘假期</span>
+            <span class="desc">藍天碧海度假感</span>
+          </div>
+          <div class="style-btn" data-bg="party" onclick="selectBackground(this)">
+            <span class="emoji">🎉</span>
+            <span class="name">繽紛派對</span>
+            <span class="desc">氣球與慶祝氛圍</span>
+          </div>
+          <div class="style-btn" data-bg="studio" onclick="selectBackground(this)">
+            <span class="emoji">🎞️</span>
+            <span class="name">極簡攝影棚</span>
+            <span class="desc">純色簡約背景</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: 選擇噴印商品 -->
+    <div class="section">
+      <div class="section-label">
+        <span class="step-num" id="step3-dot">3</span>選擇噴印商品
+      </div>
+      <div class="product-grid">
+        <div class="product-btn selected" data-product="photo" onclick="selectProduct(this)">
+          <span class="p-emoji">🖼️</span>
+          <span class="p-name">印相片</span>
+        </div>
+        <div class="product-btn" data-product="badge" onclick="selectProduct(this)">
+          <span class="p-emoji">📛</span>
+          <span class="p-name">胸章</span>
+        </div>
+        <div class="product-btn" data-product="mug" onclick="selectProduct(this)">
+          <span class="p-emoji">☕</span>
+          <span class="p-name">馬克杯</span>
+        </div>
+      </div>
+      <div class="sub-label" style="margin-top:0.85rem;">選擇尺寸 / 構圖方式</div>
+      <div class="size-row" id="size-row"></div>
+      <div id="size-hint" style="margin-top:0.5rem;font-size:0.62rem;color:var(--muted);line-height:1.7;"></div>
+    </div>
+
+    <!-- Step 4: 模型 / 畫質對照 -->
+    <div class="section">
+      <div class="section-label">
+        <span class="step-num done" id="step4-dot">4</span>生成對照
+      </div>
+      <div class="sub-label">選擇模型</div>
+      <div class="option-row" id="model-row">
+        <button type="button" class="option-btn" data-model="gpt-image-2" onclick="selectModel(this)">
+          <span class="o-name">GPT Image 2</span>
+          <span class="o-desc">原本這版 · 較穩、較慢</span>
+        </button>
+        <button type="button" class="option-btn selected" data-model="gpt-image-2.5-flare" onclick="selectModel(this)">
+          <span class="o-name">2.5 Flare</span>
+          <span class="o-desc">建議對照 · 約快 50%</span>
+        </button>
+      </div>
+      <div class="sub-label" style="margin-top:0.85rem;">選擇畫質</div>
+      <div class="option-row" id="quality-row">
+        <button type="button" class="option-btn selected" data-quality="low" onclick="selectQuality(this)">
+          <span class="o-name">Low</span>
+          <span class="o-desc">約 15–25 秒 · 較省</span>
+        </button>
+        <button type="button" class="option-btn" data-quality="medium" onclick="selectQuality(this)">
+          <span class="o-name">Medium</span>
+          <span class="o-desc">約 35–80 秒 · 較細</span>
+        </button>
+      </div>
+      <div class="option-note" id="text-policy-note"></div>
+    </div>
+
+    <!-- Prompt 預覽 -->
+    <div class="prompt-preview-wrap">
+      <div class="prompt-preview-header">
+        <span class="prompt-preview-label">📋 完整提示詞預覽</span>
+        <button class="prompt-copy-btn" id="copy-btn" onclick="copyPrompt()">複製</button>
+      </div>
+      <div id="prompt-preview-box" tabindex="0"></div>
     </div>
 
     <div id="error-msg"></div>
@@ -458,7 +940,7 @@ body {
     <div class="generate-wrap">
       <button id="generate-btn" onclick="generate()">
         <div class="loading-bar" id="loading-bar"></div>
-        <span id="btn-text">✦ 開始轉換</span>
+        <span id="btn-text">🪄 開始魔法轉換！</span>
       </button>
     </div>
 
@@ -471,18 +953,13 @@ body {
       <div class="spinner"></div>
       <div>
         <div class="loading-msg" id="loading-msg">正在施魔法...</div>
-        <div class="loading-tip">通常需要 15–45 秒</div>
+        <div class="loading-tip" id="loading-tip">Low 畫質通常需要 15–25 秒</div>
       </div>
     </div>
 
     <div class="empty-state" id="empty-state">
-      <svg width="60" height="60" viewBox="0 0 64 64" fill="none">
-        <rect x="8" y="14" width="48" height="36" rx="5" stroke="#c8a96e" stroke-width="1.2"/>
-        <circle cx="22" cy="26" r="5" stroke="#c8a96e" stroke-width="1.2"/>
-        <path d="M8 40 L20 28 L30 38 L40 28 L56 44" stroke="#c8a96e" stroke-width="1.2" stroke-linejoin="round"/>
-        <path d="M44 14 L44 6 M44 6 L40 10 M44 6 L48 10" stroke="#c8a96e" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <p>上傳圖片並選擇風格<br>點擊左側「開始轉換」</p>
+      <div class="empty-icon">🔮</div>
+      <p>上傳照片並選好風格<br>按下魔法按鈕開始轉換 ✨</p>
     </div>
 
     <div id="result-area">
@@ -493,6 +970,9 @@ body {
       <div class="result-actions">
         <a id="dl-btn" class="btn-action" download="style_transfer.png">↓ 下載</a>
         <button class="btn-action primary" onclick="resetResult()">再轉一張</button>
+        <span class="cost-tag" id="cost-tag" title="依 API 回傳的實際 token 用量換算；若無 usage 資料則顯示估算值">
+          🪙 <span id="cost-model"></span> · 約 <span class="cost-val" id="cost-val"></span> / 張
+        </span>
       </div>
     </div>
 
@@ -501,21 +981,289 @@ body {
 
 <script>
 const STYLE_MAP = {
+
+  archaeologist_anime: {
+      name: "考古學家動畫風",
+      prompt: `Transform this person into an adventurous archaeologist in an animated movie style.
+    Keep the face recognizable.
+    Wear realistic archaeological field clothing.
+    Explorer hat, excavation tools, field notebook, dusty ancient ruins.
+    Cinematic anime lighting.
+    Ancient relic excavation atmosphere.
+    Warm storytelling mood.
+    Detailed animated film quality.`
+    },
+    archaeologist_realistic: {
+      name: "考古學家寫實風",
+      prompt: `Edit this photo into a realistic archaeological excavation scene in Taiwan while preserving the exact identity of every person in the original image.
+Preserve each visible person exactly as they appear in the original photo: the same face, facial features, eye shape, nose, mouth, jawline, hairstyle, hairline, skin tone, facial proportions, body shape, pose, head angle, facial expression, hand gestures, and overall identity. Do not beautify, age, stylize, exaggerate, or change any person’s appearance.
+Replace only the clothing and surrounding environment. Dress each person in authentic archaeological field clothing including a field vest, field shirt, utility pockets, scarf or neck gaiter, sun hat or excavation cap, work gloves where appropriate, and practical outdoor footwear. Keep the clothing fitted naturally to the existing body posture and movement with realistic fabric behavior.
+Replace the background with a realistic archaeological excavation site in Taiwan featuring excavation pits, pottery fragments, jade artifacts, stone tools, brushes, trowels, measuring equipment, field notebooks, baskets, and other archaeological equipment placed naturally in the environment.
+Preserve the original camera angle, selfie perspective, framing, composition, distance from the camera, and the relative position of all people. Do not add, remove, replace, or rearrange any person.
+Keep all visible hands anatomically correct with five fingers each and preserve the original hand poses.
+Match the original lighting direction, shadows, color temperature, and image quality so the transformation appears as if the original photo was taken during a real archaeological excavation in Taiwan.
+National Geographic documentary photography, museum-quality realism, photorealistic detail, natural cinematic lighting, earthy colors, shallow depth of field, and a highly authentic archaeological atmosphere.`
+    },
+    archaeologist_illustration: {
+      name: "考古學家插畫風",
+      prompt: `Transform this person into a trendy Japanese illustration artwork of an archaeological explorer.
+    Keep the original person recognizable.
+    Strong character personality and natural emotional expression.
+    Half body composition with dynamic confident pose.
+    Detailed explorer outfit with archaeology accessories — field hat, excavation tools, field notebook.
+    Ancient ruins or artifact motifs subtly in background.
+    Hand drawn doodle style.
+    Loose sketch lines and splash ink brush strokes.
+    Pastel colors mixed with warm earth ink textures.
+    Manga rough sketch feeling.
+    Minimal clean background.
+    Add small symbolic doodles and decorative graphic elements around the character — tiny pottery shards, jade fragments, ruin patterns.
+    Atmospheric premium illustration quality.
+    High detail.
+    Threads trending Japanese illustration style.`
+    },
+    prehistoric_anime: {
+      name: "史前動畫風",
+      prompt: `Transform this person into a prehistoric tribal human in animated movie style.
+    Keep the face recognizable.
+    Wear primitive clothing made from natural fibers and animal hide.
+    Ancient pottery and jade accessories.
+    Prehistoric village atmosphere.
+    Campfire lighting.
+    Cute cinematic adventure mood.
+    Detailed animation quality.`
+    },
+    prehistoric_realistic: {
+      name: "史前寫實風",
+      prompt: `Edit this photo into a realistic prehistoric Taiwan (Neolithic period) scene while preserving the exact identity of every person in the original image.
+Preserve each visible person exactly as they appear in the original photo: the same face, facial features, eye shape, nose, mouth, jawline, hairstyle, hairline, skin tone, facial proportions, body shape, pose, head angle, facial expression, hand gestures, and overall identity. Do not beautify, age, stylize, exaggerate, or change any person’s appearance.
+Replace only the clothing and surrounding environment. Dress each person in simple woven natural-fiber prehistoric clothing appropriate to Neolithic Taiwan, with minimal jade ornaments and handmade accessories. Keep the clothing fitted naturally to the existing body posture and movement with realistic fabric behavior.
+Replace the background with an authentic prehistoric Taiwan settlement featuring bamboo or wooden dwellings, handmade pottery, stone tools, shell ornaments, woven baskets, fire pits, and other archaeological details consistent with Neolithic Taiwan culture.
+Preserve the original camera angle, selfie perspective, framing, composition, distance from the camera, and the relative position of all people. Do not add, remove, replace, or rearrange any person.
+Keep all visible hands anatomically correct with five fingers each and preserve the original hand poses.
+Match the original lighting direction, shadows, color temperature, and image quality so the transformation appears as if the original photo was taken in prehistoric Taiwan.
+National Geographic documentary photography, museum-quality archaeological reconstruction, photorealistic detail, natural earthy colors, soft cinematic lighting, and a highly authentic prehistoric atmosphere.`
+    },
+    prehistoric_illustration: {
+      name: "史前插畫風",
+      prompt: `Transform this person into a trendy Japanese illustration artwork of a prehistoric tribal character.
+    Keep the original person recognizable.
+    Strong character personality and natural emotional expression.
+    Half body composition with dynamic proud pose.
+    Detailed primitive tribal outfit — natural fiber clothing, jade accessories, handmade pottery decorations.
+    Prehistoric village or ancient nature motifs subtly in background.
+    Hand drawn doodle style.
+    Loose sketch lines and splash ink brush strokes.
+    Pastel colors mixed with warm earthy ink textures.
+    Manga rough sketch feeling.
+    Minimal clean background.
+    Add small symbolic doodles and decorative graphic elements around the character — tiny jade pieces, ceramic shards, tribal patterns.
+    Atmospheric premium illustration quality.
+    High detail.
+    Threads trending Japanese illustration style.`
+    },
+    ip_anime: {
+      name: "IP合照動畫風",
+      prompt: `Naturally composite these two images into one cheerful animated movie scene.
+    Preserve the real person's exact identity: same face shape, eyes, nose, mouth, hairstyle, and skin tone, rendered in animated style. Do not turn them into a different character or generic avatar.
+    Add the IP character only, positioned side by side with the real person as if posing together for a photo.
+    Warm cinematic anime lighting.
+    Friendly and fun atmosphere inside an archaeological museum setting.
+    Detailed animated film quality.
+    Both characters should look natural together in the same scene.`
+    },
+    ip_realistic: {
+      name: "IP合照寫實風",
+      prompt: `Edit this photo so that the museum IP character appears naturally in the same photograph while preserving the exact identity of every real person in the original image.
+Preserve each visible real person exactly as they appear in the original photo: the same face, facial features, eye shape, nose, mouth, jawline, hairstyle, hairline, skin tone, facial proportions, body shape, pose, head angle, facial expression, hand gestures, and overall identity. Do not beautify, age, stylize, exaggerate, or change any real person’s appearance.
+Add only the museum IP character and integrate it naturally into the existing group as if everyone is posing together for the same photo inside a realistic archaeological museum. The IP character must be correctly scaled, lit, and positioned, and must not cover, replace, distort, or alter any real person.
+Keep the original background, camera angle, selfie perspective, framing, composition, distance from the camera, and the relative position of all real people unchanged.
+Keep all visible hands anatomically correct with five fingers each and preserve the original hand poses.
+Match the original lighting direction, shadows, reflections, perspective, color temperature, and image quality so the IP character appears genuinely photographed in the same scene.
+Documentary photography quality, realistic museum lighting, accurate perspective and scale, warm welcoming atmosphere, and seamless photorealistic integration.`
+    },
+    ip_illustration: {
+      name: "IP合照插畫風",
+      prompt: `Composite these two images into a trendy Japanese illustration artwork.
+    Preserve the real person's exact identity: same face shape, eyes, nose, mouth, hairstyle, and skin tone, rendered in illustration style. Do not turn them into a different character or generic avatar.
+    Add the IP character only, placed together with the real person in a fun dynamic pose.
+    Strong character personality on both figures.
+    Hand drawn doodle style.
+    Loose sketch lines and splash ink brush strokes.
+    Pastel colors mixed with warm earth ink textures.
+    Manga rough sketch feeling.
+    Minimal clean background.
+    Add small symbolic doodles and decorative graphic elements around both characters — tiny pottery shards, jade fragments, ruin patterns.
+    Atmospheric premium illustration quality.
+    High detail.
+    Threads trending Japanese illustration style.`
+    },
+  ugly: {
+    name: "醜陋塗鴉",
+    prompt: `Redraw this image as an intentionally ugly and hilarious doodle.
+      Keep the people and composition recognizable.
+      Draw it like a bad MS Paint sketch made with a cheap marker.
+      Messy scribbles, awkward anatomy, weird facial expressions, bad perspective.
+      Childlike drawing quality.
+      Rough uneven coloring and random sketch lines.
+      Simple cartoon background.
+      Funny internet meme energy.
+      Do not make it beautiful, polished, cinematic, or realistic.`,
+        },
+  scribble: {
+    name: "潦草塗鴉風",
+    prompt: `Redraw this image as a cute, simple amateur doodle. Preserve the main subjects, objects,
+     shapes, poses, and overall composition of the original image. Use loose, wobbly black pen lines and rough scribbled strokes,
+      like a quick sketch drawn by hand in a few minutes. Simplify facial features to minimal symbolic marks: small dot eyes and a short flat line mouth.
+       Render hair and dark areas with dense, repetitive overlapping pen strokes. Keep proportions loose and playfully exaggerated, such as a larger head and simplified body.
+        Draw background objects, buildings, and scenery with sparse, simplified black scribbles, surrounded by plenty of clean white space.
+         Add subtle colored pen accents where contextually fitting — pink zigzag blush marks on cheeks, soft pastel tones on clothing, 
+         and a few colored squiggly lines in blue, yellow, or red to suggest light reflections, glowing effects, or highlights in the scene. 
+         Keep all coloring hand-drawn and uneven, with visible pen strokes. Make the overall result look naive, playful, imperfect, and charming, like a personal casual sketchbook doodle.`,
+  },
+  pikmin: {
+    name: "皮克敏",
+    prompt: `Transform this photo into a Pikmin inspired miniature fantasy world.
+      Keep the original people recognizable.
+      Turn the environment into a tiny whimsical nature ecosystem.
+      Add adorable Pikmin style plant creatures.
+      Soft Nintendo style rendering.
+      Moss, flowers, leaves, dirt textures, glowing atmosphere.
+      Cute cinematic adventure feeling.
+      Highly detailed but playful.
+      While fully committing to the Pikmin-style transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
+  },
+  japan_illustration: {
+    name: "日系插畫",
+    prompt: `Transform this image into trendy Japanese illustration artwork.
+Keep the original person recognizable.
+Strong character personality and natural emotional expression.
+Half body composition.
+Dynamic pose.
+Detailed clothing design.
+Hand drawn doodle style.
+Loose sketch lines and splash ink brush strokes.
+Pastel colors mixed with ink textures.
+Manga rough sketch feeling.
+Minimal clean white background.
+Add small symbolic doodles and decorative graphic elements around the character.
+Atmospheric premium illustration quality.
+High detail.
+Threads trending Japanese illustration style.
+While fully committing to the illustration transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
+  },
   ghibli: {
     name: "吉卜力",
-    prompt: "restyle image in studio ghibli style, keep all details",
+    prompt: `Transform this image into a Studio Ghibli inspired animated film frame.
+Keep the original composition and people recognizable.
+Warm cinematic lighting.
+Hand painted anime background.
+Soft emotional atmosphere.
+Natural anime expressions.
+Painterly textures.
+Beautiful environmental storytelling.
+Premium Japanese animation movie quality.
+While fully committing to the Ghibli-style transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
   },
-  chibi: {
-    name: "Q 版",
-    prompt: "restyle image in cute chibi anime style, keep all details",
+  anime_movie: {
+    name: "動畫電影",
+    prompt: `Transform this image into a cinematic anime movie scene.
+Keep the original subjects recognizable.
+Dynamic camera angle.
+Dramatic anime lighting.
+Detailed anime rendering.
+Film grain and depth of field.
+Epic emotional atmosphere.
+Premium Japanese animated movie quality.
+While fully committing to the anime transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
+  },
+  scrapbook: {
+    name: "手帳貼紙",
+    prompt: `Transform this image into cute scrapbook collage art.
+Keep the people recognizable.
+Add white sticker borders around subjects.
+Handwritten notes, hearts, stars, arrows, doodles.
+Soft pastel color palette.
+Paper texture.
+Cute journal aesthetic.
+Instagram trendy scrapbook style.
+Decorative stickers around the composition.
+Warm cozy atmosphere.
+While fully committing to the scrapbook collage style, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
   },
   painting: {
     name: "油畫",
-    prompt: "restyle image as oil painting, keep all details",
+    prompt: `Transform this image into a rich oil painting artwork.
+Keep the original composition recognizable.
+Visible thick brush strokes.
+Canvas texture.
+Painterly lighting.
+Classical art feeling with cinematic atmosphere.
+Detailed artistic rendering.
+While fully committing to the oil painting transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable within the painterly brushwork.`,
   },
   sketch: {
     name: "彩色素描",
-    prompt: "restyle image as colored pencil sketch, keep all details",
+    prompt: `Transform this image into a colored pencil sketch illustration.
+Keep the original composition recognizable.
+Visible sketch lines.
+Hand drawn texture.
+Soft shading.
+Sketchbook feeling.
+Paper grain texture.
+Artistic rough rendering.
+While fully committing to the pencil sketch transformation, keep each person's core facial identity (face shape, eyes, nose, mouth) recognizable within the sketch lines.`,
+  },
+
+};
+
+/** 「其他風格」專用的背景選項：以附加片段接在風格 prompt 之後 */
+const BACKGROUND_MAP = {
+  original: {
+    name: "原本背景",
+    prompt: "",
+  },
+  garden: {
+    name: "夢幻花園",
+    prompt: `
+Replace the background with a dreamy blooming flower garden bathed in soft natural sunlight.
+Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
+  },
+  night_city: {
+    name: "璀璨夜景",
+    prompt: `
+Replace the background with a glittering city skyline at night, warm bokeh lights, and a romantic night atmosphere.
+Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
+  },
+  forest: {
+    name: "魔幻森林",
+    prompt: `
+Replace the background with an enchanted forest, sunlight filtering softly through the leaves, a magical and serene atmosphere.
+Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
+  },
+  cafe: {
+    name: "復古咖啡廳",
+    prompt: `
+Replace the background with a cozy retro café interior, warm ambient lighting and soft wooden textures.
+Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
+  },
+  beach: {
+    name: "海灘假期",
+    prompt: `
+Replace the background with a sunny tropical beach, clear blue sky, gentle ocean waves, and a relaxed holiday atmosphere.
+Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
+  },
+  party: {
+    name: "繽紛派對",
+    prompt: `
+Replace the background with a festive celebration scene, colorful balloons, confetti, and warm party lighting.
+Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
+  },
+  studio: {
+    name: "極簡攝影棚",
+    prompt: `
+Replace the background with a clean minimal solid-color studio backdrop, soft even lighting, and a subtle shadow beneath the subject.
+Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
   },
 };
 
@@ -524,24 +1272,330 @@ const MSGS = ["正在施魔法...", "融合風格中...", "手繪細節中...", 
 /** OpenAI Images Edits：multipart 上傳（等同官方 client.images.edit） */
 const OPENAI_EDITS_URL = "https://api.openai.com/v1/images/edits";
 
-/** 固定使用 GPT Image 1.5（等比例送圖，不裁正方形） */
-const IMAGE_EDIT_MODEL = "gpt-image-1.5";
+/**
+ * 可切換的 Images Edit 模型。
+ * gpt-image-2：原本這版，medium 常見 40–80 秒。
+ * gpt-image-2.5-flare：較快對照，官方稱最多約快 50%。
+ */
+const IMAGE_MODELS = {
+  "gpt-image-2": { label: "GPT Image 2" },
+  "gpt-image-2.5-flare": { label: "GPT Image 2.5 Flare" },
+};
+
+/** 預設走較快的 Flare，方便與舊模型對照。 */
+let selectedModel = "gpt-image-2.5-flare";
 
 /** 長邊上限（約 6 吋 @300dpi，等比例縮小後約可印一張相片紙） */
 const MAX_IMAGE_LONG_EDGE = 1800;
 
-let selectedStyle = "ghibli";
+/**
+ * 所有風格共用：角色身上與穿戴物不得出現文字。
+ */
+const CHARACTER_NO_TEXT_PROMPT = `
+The people in the image must have no visible text on their bodies or on anything they wear or hold.
+This includes outfits, clothing prints, name tags, badges, hats, bags, accessories, and any object attached to a character.
+Erase lettering from those items and reconstruct them as blank fabric, plastic, metal, or other surfaces that match the chosen style.`;
+
+/**
+ * 強制去字：除「醜陋塗鴉」外都套用。畫面其餘位置也不准有字。
+ */
+const TEXT_REMOVAL_PROMPT = `${CHARACTER_NO_TEXT_PROMPT}
+Also remove all other visible text from the output image.
+Do not render any written characters: Chinese, Japanese, Korean, English letters, numbers, logos with lettering, watermarks, captions, signs, labels, posters, screens, or typography.
+If the original photo contains text on signs, objects, or the background, erase that lettering and reconstruct the surface to match the chosen style.
+Do not replace text with different, similar, or garbled characters. The final image must contain no readable writing of any kind.`;
+
+/**
+ * 「醜陋塗鴉」例外：角色身上仍不准有字；畫面其他地方的 AI 亂畫字可以留。
+ */
+const TEXT_KEEP_PROMPT = `${CHARACTER_NO_TEXT_PROMPT}
+AI-generated messy doodle text may be kept or invented anywhere except on the characters and the objects they wear or hold.
+You may add ugly, uneven lettering in the margins, background, captions, or decorative scribbles — Chinese, English, or numbers.
+Do not place that writing on clothing, hats, tags, or items attached to a person.
+Do not clean up, correct, or beautify the writing.`;
+
+/** 只有這些風格可以在輸出裡生成／保留文字。 */
+const TEXT_ALLOWED_STYLES = new Set(["ugly"]);
+
+let selectedStyle = "";
+let selectedBackground = "original";
 let currentFile = null;
-/** @type {string|null} 預覽用 blob URL，需在更換或重設時 revoke */
 let thumbObjectUrl = null;
 let msgTimer = null;
+let selectedTheme = "archaeologist";
+let selectedRender = "anime";
+let activeTab = "museum";
 
-function selectStyle(el) {
-  document.querySelectorAll(".style-btn").forEach((b) => b.classList.remove("selected"));
-  el.classList.add("selected");
-  selectedStyle = el.dataset.style;
+// ---- 商品與尺寸 ----
+let selectedProduct = "photo";
+let selectedSize    = "portrait";
+
+const PRODUCT_SIZES = {
+  photo: [
+    { key: "portrait",  label: "直式",   ratio: "3:4",  apiSize: "1024x1360",
+      promptSuffix: `\nOutput image composition: vertical portrait orientation, aspect ratio 3:4.\nTall composition. Subject centered vertically.\nOptimized for photo print portrait format.` },
+    { key: "landscape", label: "橫式",   ratio: "4:3",  apiSize: "1360x1024",
+      promptSuffix: `\nOutput image composition: horizontal landscape orientation, aspect ratio 4:3.\nWide composition. Subject centered horizontally.\nOptimized for photo print landscape format.` },
+  ],
+  badge: [
+    { key: "square",    label: "正方形", ratio: "1:1",  apiSize: "1024x1024",
+      promptSuffix: `\nOutput image composition: perfect square format, aspect ratio 1:1.\nSubject tightly centered. No wasted space on edges.\nOptimized for round or square badge print.\nStrong central focus composition.` },
+  ],
+  mug: [
+    { key: "square",    label: "正方形", ratio: "1:1",  apiSize: "1024x1024",
+      promptSuffix: `\nOutput image composition: square format, aspect ratio 1:1.\nClean centered composition suitable for mug side panel print.` },
+    { key: "rect",      label: "長方形", ratio: "3:1",  apiSize: "1536x512",
+      promptSuffix: `\nOutput image composition: wide panoramic banner, aspect ratio 3:1.\nHorizontal wrap-around composition for mug.\nScene or subject spread evenly left to right.\nSeamless wrap-friendly design with no important elements at far edges.` },
+    { key: "circle",    label: "圓形",   ratio: "1:1",  apiSize: "1024x1024",
+      promptSuffix: `\nOutput image composition: circular composition, aspect ratio 1:1.\nMain subject centered within a circular frame.\nLeave slight breathing room near edges.\nOptimized for circular mug medallion print.` },
+  ],
+};
+
+// ---- 畫質 / 預估價格 ----
+/** 預設 low：目標壓到約 30 秒；可切回 medium 對照畫質。 */
+let selectedQuality = "low";
+
+const QUALITY_TIP = {
+  low: "Low 畫質通常需要 15–25 秒",
+  medium: "Medium 畫質通常需要 35–80 秒",
+};
+
+// 依 OpenAI 公開定價估算（2026-08），僅供參考，實際帳單依 token 用量計算，會有落差。
+// square: 1:1；wide: 直式/橫式/長方形等非 1:1 比例
+const PRICE_ESTIMATE_USD = {
+  medium: { square: 0.053, wide: 0.041 },
+  high:   { square: 0.211, wide: 0.165 },
+  low:    { square: 0.011, wide: 0.009 },
+};
+
+function getSizeShapeClass(ratio) {
+  return ratio === "1:1" ? "square" : "wide";
 }
 
+function getEstimatedCostText(sizeEntry) {
+  const shape = getSizeShapeClass(sizeEntry ? sizeEntry.ratio : "1:1");
+  const usd = (PRICE_ESTIMATE_USD[selectedQuality] || {})[shape];
+  return usd != null ? `$${usd.toFixed(3)} USD` : "—";
+}
+
+/**
+ * 同步頂欄型號與等待提示。
+ * @returns {void}
+ */
+function syncGenerationSettingsUi() {
+  const badge = document.getElementById("model-badge");
+  if (badge) badge.textContent = IMAGE_MODELS[selectedModel]?.label || selectedModel;
+  const tip = document.getElementById("loading-tip");
+  if (tip) tip.textContent = QUALITY_TIP[selectedQuality] || QUALITY_TIP.low;
+}
+
+/**
+ * 切換 Images Edit 模型。
+ * @param {HTMLElement} el
+ * @returns {void}
+ */
+function selectModel(el) {
+  document.querySelectorAll("#model-row .option-btn").forEach((btn) => btn.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedModel = el.dataset.model;
+  sessionStorage.setItem("openai_image_model", selectedModel);
+  syncGenerationSettingsUi();
+}
+
+/**
+ * 切換輸出畫質（同時是速度旋鈕）。
+ * @param {HTMLElement} el
+ * @returns {void}
+ */
+function selectQuality(el) {
+  document.querySelectorAll("#quality-row .option-btn").forEach((btn) => btn.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedQuality = el.dataset.quality;
+  sessionStorage.setItem("openai_image_quality", selectedQuality);
+  syncGenerationSettingsUi();
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById("tab-museum").classList.toggle("active", tab === "museum");
+  document.getElementById("tab-other").classList.toggle("active", tab === "other");
+  document.getElementById("panel-museum").style.display = tab === "museum" ? "block" : "none";
+  document.getElementById("panel-other").style.display = tab === "other" ? "block" : "none";
+  if (tab === "museum") {
+    selectedStyle = "";
+    document.querySelectorAll("#panel-other [data-style]").forEach(b => b.classList.remove("selected"));
+  } else {
+    document.querySelectorAll("#panel-other [data-style]").forEach(b => b.classList.remove("selected"));
+  }
+  updatePromptPreview();
+}
+
+function selectTheme(el) {
+  document.querySelectorAll('#panel-museum [data-theme]').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTheme = el.dataset.theme;
+  updatePromptPreview();
+}
+
+function selectRender(el) {
+  document.querySelectorAll('#panel-museum [data-render]').forEach(btn => btn.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedRender = el.dataset.render;
+  updatePromptPreview();
+}
+
+function selectOtherStyle(el) {
+  document.querySelectorAll('#panel-other [data-style]').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedStyle = el.dataset.style;
+  updatePromptPreview();
+}
+
+function selectBackground(el) {
+  document.querySelectorAll('#panel-other [data-bg]').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBackground = el.dataset.bg;
+  updatePromptPreview();
+}
+
+/* ---- 商品選擇 ---- */
+function selectProduct(el) {
+  document.querySelectorAll('.product-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedProduct = el.dataset.product;
+  renderSizes();
+}
+
+function renderSizes() {
+  const sizes = PRODUCT_SIZES[selectedProduct] || [];
+  const row = document.getElementById('size-row');
+  row.innerHTML = '';
+  sizes.forEach((s, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'size-btn' + (i === 0 ? ' selected' : '');
+    btn.dataset.size = s.key;
+    btn.onclick = () => selectSize(btn);
+    const pH = 22;
+    const pW = s.ratio === '3:1' ? 66 : s.ratio === '3:4' ? 17 : s.ratio === '4:3' ? 29 : 22;
+    const br = s.key === 'circle' ? '50%' : '3px';
+    btn.innerHTML = `
+      <div class="size-preview" style="width:${pW}px;height:${pH}px;border-radius:${br};"></div>
+      <span class="s-label">${s.label}</span>
+      <span class="s-ratio">${s.ratio}</span>`;
+    row.appendChild(btn);
+  });
+  selectedSize = sizes[0]?.key || '';
+  document.getElementById('size-hint').textContent = getHint();
+  updatePromptPreview();
+}
+
+function selectSize(el) {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSize = el.dataset.size;
+  document.getElementById('size-hint').textContent = getHint();
+  updatePromptPreview();
+}
+
+function getHint() {
+  const hints = {
+    portrait:  '直式 3:4，適合人像構圖。AI 將以直式比例生成圖像。',
+    landscape: '橫式 4:3，適合風景構圖。AI 將以橫式比例生成圖像。',
+    square:    '正方形 1:1，主體置中。AI 將以正方形構圖生成圖像。',
+    rect:      '長方形 3:1，環繞馬克杯整圈。AI 將以橫向全景構圖生成圖像。',
+    circle:    '圓形裁切，主體置中留邊。AI 將以圓形構圖生成圖像。',
+  };
+  return hints[selectedSize] || '';
+}
+
+function getCurrentSizeEntry() {
+  const sizes = PRODUCT_SIZES[selectedProduct] || [];
+  return sizes.find(x => x.key === selectedSize) || sizes[0];
+}
+
+function buildSizePrompt() {
+  const s = getCurrentSizeEntry();
+  return s ? s.promptSuffix : '';
+}
+
+function getSizeLabel() {
+  const s = getCurrentSizeEntry();
+  return s ? `${s.label}（${s.ratio}）` : '';
+}
+
+/* ---- Prompt 預覽 ---- */
+function getBasePrompt() {
+  if (activeTab === "museum") {
+    const key = `${selectedTheme}_${selectedRender}`;
+    return STYLE_MAP[key]?.prompt || "（請先選擇角色與畫風）";
+  } else {
+    const base = STYLE_MAP[selectedStyle]?.prompt;
+    if (!base) return "（請先選擇風格）";
+    const bg = BACKGROUND_MAP[selectedBackground]?.prompt || "";
+    return base + bg;
+  }
+}
+
+/**
+ * 目前選擇是否允許輸出文字（僅醜陋塗鴉）。
+ * @returns {boolean}
+ */
+function allowsGeneratedText() {
+  return activeTab === "other" && TEXT_ALLOWED_STYLES.has(selectedStyle);
+}
+
+/**
+ * 依風格決定去字或保留文字的附加提示。
+ * @returns {string}
+ */
+function buildTextPolicyPrompt() {
+  return allowsGeneratedText() ? TEXT_KEEP_PROMPT : TEXT_REMOVAL_PROMPT;
+}
+
+/**
+ * 同步去字說明：醜陋塗鴉顯示例外，其餘顯示清除文字。
+ * @returns {void}
+ */
+function syncTextPolicyNote() {
+  const note = document.getElementById("text-policy-note");
+  if (!note) return;
+  note.textContent = allowsGeneratedText()
+    ? "此風格例外：角色衣服、掛牌、帽子與身上物件不准有字；畫面其他地方的 AI 亂畫字可以留。"
+    : "除「醜陋塗鴉」外會清掉所有文字。所有風格的角色穿搭、掛牌、帽子上都不會有字。";
+}
+
+/**
+ * 組合實際送出的完整提示詞：風格 + 文字政策 + 構圖。
+ * @returns {string}
+ */
+function buildFullPrompt() {
+  return getBasePrompt() + buildTextPolicyPrompt() + buildSizePrompt();
+}
+
+function updatePromptPreview() {
+  document.getElementById("prompt-preview-box").textContent = buildFullPrompt().trim();
+  syncTextPolicyNote();
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-preview-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ 已複製';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '複製';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    // fallback
+    const el = document.getElementById('prompt-preview-box');
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
 function resetUpload() {
   currentFile = null;
   if (thumbObjectUrl) {
@@ -572,6 +1626,21 @@ function loadImageFromFile(file) {
       reject(new Error("無法讀取圖片"));
     };
     img.src = url;
+  });
+}
+
+/**
+ * 從相對路徑載入圖片為 HTMLImageElement。
+ * @param {string} src
+ * @returns {Promise<HTMLImageElement>}
+ */
+function loadImageFromUrl(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`無法載入 IP 圖片（${src}），請確認 img/IP.jpg 已放於同資料夾`));
+    img.src = src + "?t=" + Date.now();
   });
 }
 
@@ -708,7 +1777,7 @@ function hideError() {
 function setLoading(on) {
   const btn = document.getElementById("generate-btn");
   btn.disabled = on;
-  document.getElementById("btn-text").textContent = on ? "轉換中..." : "✦ 開始轉換";
+  document.getElementById("btn-text").textContent = on ? "✨ 轉換中..." : "🪄 開始魔法轉換！";
   document.getElementById("loading-bar").style.width = on ? "80%" : "0%";
   const overlay = document.getElementById("loading-overlay");
   if (on) {
@@ -732,11 +1801,13 @@ function setLoading(on) {
  * @param {string} prompt
  * @returns {Promise<string>}
  */
-async function openaiImagesEdit(apiKey, imageFile, prompt) {
+async function openaiImagesEdit(apiKey, imageFile, prompt, size, quality) {
   const formData = new FormData();
-  formData.append("model", IMAGE_EDIT_MODEL);
+  formData.append("model", selectedModel);
   formData.append("prompt", prompt);
   formData.append("image", imageFile, imageFile.name || "upload.png");
+  if (size) formData.append("size", size);
+  if (quality) formData.append("quality", quality);
 
   const res = await fetch(OPENAI_EDITS_URL, {
     method: "POST",
@@ -753,13 +1824,35 @@ async function openaiImagesEdit(apiKey, imageFile, prompt) {
   }
 
   const first = data?.data?.[0];
+  let dataUrl;
   if (first?.b64_json) {
-    return "data:image/png;base64," + first.b64_json;
+    dataUrl = "data:image/png;base64," + first.b64_json;
+  } else if (first?.url) {
+    dataUrl = first.url;
+  } else {
+    throw new Error("API 未回傳圖片（無 b64_json / url）");
   }
-  if (first?.url) {
-    return first.url;
-  }
-  throw new Error("API 未回傳圖片（無 b64_json / url）");
+  return { dataUrl, usage: data?.usage || null };
+}
+
+// 官方 token 單價（USD / token）：text input $5/1M、image input $8/1M、output $30/1M
+const TOKEN_RATE_USD = {
+  textInput: 5 / 1e6,
+  imageInput: 8 / 1e6,
+  output: 30 / 1e6,
+};
+
+/**
+ * 依 API 回傳的 usage 精算實際費用；若無 usage 資料則回傳 null（呼叫端可退回估算值）。
+ * @param {{input_tokens_details?: {text_tokens?: number, image_tokens?: number}, output_tokens?: number}} usage
+ * @returns {number|null}
+ */
+function computeActualCostUsd(usage) {
+  if (!usage) return null;
+  const textIn = usage.input_tokens_details?.text_tokens || 0;
+  const imageIn = usage.input_tokens_details?.image_tokens || 0;
+  const outTok = usage.output_tokens || 0;
+  return textIn * TOKEN_RATE_USD.textInput + imageIn * TOKEN_RATE_USD.imageInput + outTok * TOKEN_RATE_USD.output;
 }
 
 async function generate() {
@@ -773,15 +1866,72 @@ async function generate() {
     showError("請輸入 OpenAI API Key");
     return;
   }
+  if (activeTab === "other" && !selectedStyle) {
+    showError("請先在「其他風格」中選擇一個風格");
+    return;
+  }
 
   setLoading(true);
   document.getElementById("result-area").style.display = "none";
 
   try {
-    const prompt = STYLE_MAP[selectedStyle].prompt;
-    const fileToSend = await resizeImageForUploadAsPng(currentFile, MAX_IMAGE_LONG_EDGE);
-    const dataUrl = await openaiImagesEdit(apiKey, fileToSend, prompt);
-    showResult(dataUrl);
+    let prompt = "";
+    let displayName = "";
+    let fileToSend;
+
+    if (activeTab === "museum") {
+      const key = `${selectedTheme}_${selectedRender}`;
+      if (!STYLE_MAP[key]) {
+        showError("找不到對應的考古館風格組合");
+        setLoading(false);
+        return;
+      }
+      prompt = buildFullPrompt();
+      displayName = STYLE_MAP[key].name;
+
+      if (selectedTheme === "ip") {
+        // 與IP合照：Canvas 合成使用者照片 + img/IP.jpg 後送 API
+        const userImg = await loadImageFromFile(currentFile);
+        const ipImg = await loadImageFromUrl("img/IP.jpg");
+
+        const targetH = Math.max(userImg.naturalHeight, ipImg.naturalHeight, 600);
+        const wUser = Math.round(userImg.naturalWidth * (targetH / userImg.naturalHeight));
+        const wIp   = Math.round(ipImg.naturalWidth  * (targetH / ipImg.naturalHeight));
+
+        const canvas = document.createElement("canvas");
+        canvas.width  = wUser + wIp;
+        canvas.height = targetH;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(userImg, 0,     0, wUser, targetH);
+        ctx.drawImage(ipImg,   wUser, 0, wIp,   targetH);
+
+        const blob = await new Promise((res, rej) =>
+          canvas.toBlob(b => b ? res(b) : rej(new Error("合成圖片失敗")), "image/png")
+        );
+        const compositeFile = new File([blob], "composite.png", { type: "image/png" });
+        fileToSend = await resizeImageForUploadAsPng(compositeFile, MAX_IMAGE_LONG_EDGE * 2);
+      } else {
+        fileToSend = await resizeImageForUploadAsPng(currentFile, MAX_IMAGE_LONG_EDGE);
+      }
+    } else {
+      if (!selectedStyle || !STYLE_MAP[selectedStyle]) {
+        showError("請先選擇一個風格");
+        setLoading(false);
+        return;
+      }
+      prompt = buildFullPrompt();
+      displayName = STYLE_MAP[selectedStyle].name +
+        (selectedBackground !== "original" ? " · " + BACKGROUND_MAP[selectedBackground].name : "");
+      fileToSend = await resizeImageForUploadAsPng(currentFile, MAX_IMAGE_LONG_EDGE);
+    }
+
+    const sizeEntry = getCurrentSizeEntry();
+    const { dataUrl, usage } = await openaiImagesEdit(apiKey, fileToSend, prompt, sizeEntry?.apiSize, selectedQuality);
+    const actualCost = computeActualCostUsd(usage);
+    const costText = actualCost != null
+      ? `$${actualCost.toFixed(4)} USD`
+      : getEstimatedCostText(sizeEntry) + '（估算）';
+    showResult(dataUrl, displayName + ' · ' + getSizeLabel(), costText);
   } catch (e) {
     showError("錯誤：" + (e && e.message ? e.message : String(e)));
     document.getElementById("empty-state").style.display = "flex";
@@ -794,11 +1944,12 @@ async function generate() {
  * 顯示結果圖；若為遠端 URL 則下載連結沿用該 URL。
  * @param {string} dataUrlOrHttp
  */
-function showResult(dataUrlOrHttp) {
-  const name = STYLE_MAP[selectedStyle].name;
+function showResult(dataUrlOrHttp, displayName, costText) {
   document.getElementById("result-img").src = dataUrlOrHttp;
   document.getElementById("dl-btn").href = dataUrlOrHttp;
-  document.getElementById("style-badge").textContent = name;
+  document.getElementById("style-badge").textContent = displayName || "轉換完成";
+  document.getElementById("cost-model").textContent = selectedModel + " · " + selectedQuality;
+  document.getElementById("cost-val").textContent = costText || "—";
   document.getElementById("result-area").style.display = "flex";
   document.getElementById("empty-state").style.display = "none";
 }
@@ -807,6 +1958,33 @@ function resetResult() {
   document.getElementById("result-area").style.display = "none";
   document.getElementById("empty-state").style.display = "flex";
 }
+
+/**
+ * 還原上次選擇的模型與畫質，並同步按鈕狀態。
+ * @returns {void}
+ */
+function restoreGenerationSettings() {
+  const savedModel = sessionStorage.getItem("openai_image_model");
+  if (savedModel && IMAGE_MODELS[savedModel]) {
+    selectedModel = savedModel;
+    document.querySelectorAll("#model-row .option-btn").forEach((btn) => {
+      btn.classList.toggle("selected", btn.dataset.model === selectedModel);
+    });
+  }
+  const savedQuality = sessionStorage.getItem("openai_image_quality");
+  if (savedQuality === "low" || savedQuality === "medium") {
+    selectedQuality = savedQuality;
+    document.querySelectorAll("#quality-row .option-btn").forEach((btn) => {
+      btn.classList.toggle("selected", btn.dataset.quality === selectedQuality);
+    });
+  }
+  syncGenerationSettingsUi();
+}
+
+// 初始化
+renderSizes();
+updatePromptPreview();
+restoreGenerationSettings();
 
 const saved = sessionStorage.getItem("openai_key");
 if (saved) {
