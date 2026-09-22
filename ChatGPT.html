@@ -320,6 +320,32 @@ body::before {
 .style-btn .name { font-size: 0.85rem; font-weight: 800; color: var(--text); display: block; }
 .style-btn .desc { font-size: 0.68rem; color: var(--muted); margin-top: 2px; display: block; line-height: 1.4; }
 
+/* IP 角色縮圖按鈕 */
+.style-btn .ip-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #f3efe6;
+  margin-bottom: 0.45rem;
+  display: block;
+}
+.fixed-scene-note {
+  margin: 0.55rem 0 0.85rem;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255,230,109,0.08);
+  border: 1px solid rgba(255,230,109,0.22);
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.65;
+  font-weight: 700;
+}
+.fixed-scene-note strong {
+  color: var(--c3);
+  font-weight: 800;
+}
+
 /* ── Error ── */
 #error-msg {
   display: none;
@@ -503,6 +529,19 @@ body::before {
   white-space: nowrap;
 }
 .cost-tag .cost-val { color: var(--c3); font-weight: 800; }
+.time-tag {
+  font-size: 0.68rem;
+  color: var(--muted);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.time-tag .time-val { color: var(--c2); font-weight: 800; }
 
 .btn-action {
   background: var(--surface2);
@@ -776,97 +815,155 @@ body::before {
         </div>
       </div>
 
-      <!-- 其他風格 Panel -->
+      <!-- 其他風格 Panel：先選模式，再選 IP / 風格 -->
       <div id="panel-other" style="display:none;">
+        <div class="sub-label">選擇模式</div>
         <div class="style-grid">
-          <div class="style-btn" data-style="ugly" onclick="selectOtherStyle(this)">
-            <span class="emoji">🖍️</span>
-            <span class="name">醜陋塗鴉</span>
-            <span class="desc">Threads 爆紅爛畫風</span>
+          <div class="style-btn" data-other-mode="ip" onclick="selectOtherMode(this)">
+            <span class="emoji">🍂</span>
+            <span class="name">IP合照</span>
+            <span class="desc">銀杏森林與角色同框</span>
           </div>
-          <div class="style-btn" data-style="scribble" onclick="selectOtherStyle(this)">
-            <span class="emoji">✏️</span>
-            <span class="name">潦草塗鴉風</span>
-            <span class="desc">手繪隨性可愛感</span>
-          </div>
-          <!-- <div class="style-btn" data-style="pikmin" onclick="selectOtherStyle(this)">
-            <span class="emoji">🌱</span>
-            <span class="name">皮克敏</span>
-            <span class="desc">任天堂微縮世界感</span>
-          </div> -->
-          <div class="style-btn" data-style="japan_illustration" onclick="selectOtherStyle(this)">
-            <span class="emoji">🎨</span>
-            <span class="name">日系插畫</span>
-            <span class="desc">Threads 氛圍插畫風</span>
-          </div>
-          <div class="style-btn" data-style="ghibli" onclick="selectOtherStyle(this)">
-            <span class="emoji">🌿</span>
-            <span class="name">吉卜力</span>
-            <span class="desc">宮崎駿動畫感</span>
-          </div>
-          <div class="style-btn" data-style="anime_movie" onclick="selectOtherStyle(this)">
-            <span class="emoji">🎬</span>
-            <span class="name">動畫電影</span>
-            <span class="desc">高級動漫電影感</span>
-          </div>
-          <div class="style-btn" data-style="scrapbook" onclick="selectOtherStyle(this)">
-            <span class="emoji">📒</span>
-            <span class="name">手帳貼紙</span>
-            <span class="desc">IG Scrapbook 風</span>
-          </div>
-          <div class="style-btn" data-style="painting" onclick="selectOtherStyle(this)">
-            <span class="emoji">🖌️</span>
-            <span class="name">油畫</span>
-            <span class="desc">厚塗印象派</span>
-          </div>
-          <div class="style-btn" data-style="sketch" onclick="selectOtherStyle(this)">
-            <span class="emoji">✏️</span>
-            <span class="name">彩色素描</span>
-            <span class="desc">手繪筆觸感</span>
+          <div class="style-btn" data-other-mode="style" onclick="selectOtherMode(this)">
+            <span class="emoji">✨</span>
+            <span class="name">風格轉換</span>
+            <span class="desc">套用藝術風格與背景</span>
           </div>
         </div>
 
-        <div class="sub-label" style="margin-top:0.85rem;">選擇背景</div>
-        <div class="style-grid">
-          <div class="style-btn selected" data-bg="original" onclick="selectBackground(this)">
-            <span class="emoji">📷</span>
-            <span class="name">原本背景</span>
-            <span class="desc">保留拍攝時的背景</span>
+        <!-- IP合照子流程 -->
+        <div id="other-sub-ip" style="display:none;margin-top:0.85rem;">
+          <div class="fixed-scene-note" id="ip-scene-note">
+            <strong>固定情境：</strong>銀杏森林 · 依角色類型自動切換「一起散步」或「同框原圖」
           </div>
-          <div class="style-btn" data-bg="garden" onclick="selectBackground(this)">
-            <span class="emoji">🌸</span>
-            <span class="name">夢幻花園</span>
-            <span class="desc">花海與柔和陽光</span>
+          <div class="sub-label">選擇 IP 角色</div>
+          <div class="style-grid" id="ip-character-grid">
+            <div class="style-btn" data-ip="rock_ip" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/IP.jpg" alt="石人 IP">
+              <span class="name">石人 IP</span>
+              <span class="desc">有四肢 · 一起散步</span>
+            </div>
+            <div class="style-btn" data-ip="catch_cat" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/catch_cat.jpg" alt="@CATch笑貓">
+              <span class="name">@CATch笑貓</span>
+              <span class="desc">有四肢 · 一起散步</span>
+            </div>
+            <div class="style-btn" data-ip="ocat" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/ocat.jpg" alt="O-cat不理貓">
+              <span class="name">O-cat不理貓</span>
+              <span class="desc">有四肢 · 一起散步</span>
+            </div>
+            <div class="style-btn" data-ip="fantasy_forest" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/fantasy_forest.jpg" alt="異想之森">
+              <span class="name">異想之森</span>
+              <span class="desc">有四肢 · 一起散步</span>
+            </div>
+            <div class="style-btn" data-ip="coomi" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/coomi.jpg" alt="酷米原始人">
+              <span class="name">酷米原始人</span>
+              <span class="desc">有四肢 · 一起散步</span>
+            </div>
+            <div class="style-btn" data-ip="buddy" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/buddy.jpg" alt="不知道同學">
+              <span class="name">不知道同學</span>
+              <span class="desc">無四肢 · 同框原圖</span>
+            </div>
+            <div class="style-btn" data-ip="pending" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/pending.jpg" alt="待測試02">
+              <span class="name">待測試02</span>
+              <span class="desc">無四肢 · 同框原圖</span>
+            </div>
+            <div class="style-btn" data-ip="boba" onclick="selectIpCharacter(this)">
+              <img class="ip-thumb" src="IP/boba.jpg" alt="波霸奶茶">
+              <span class="name">波霸奶茶</span>
+              <span class="desc">無四肢 · 同框原圖</span>
+            </div>
           </div>
-          <div class="style-btn" data-bg="night_city" onclick="selectBackground(this)">
-            <span class="emoji">🌃</span>
-            <span class="name">璀璨夜景</span>
-            <span class="desc">城市燈光與夜色</span>
+        </div>
+
+        <!-- 風格轉換子流程 -->
+        <div id="other-sub-style" style="display:none;margin-top:0.85rem;">
+          <div class="sub-label">選擇風格</div>
+          <div class="style-grid">
+            <div class="style-btn" data-style="scribble" onclick="selectOtherStyle(this)">
+              <span class="emoji">✏️</span>
+              <span class="name">潦草速寫</span>
+              <span class="desc">手繪隨性可愛感</span>
+            </div>
+            <div class="style-btn" data-style="ugly" onclick="selectOtherStyle(this)">
+              <span class="emoji">🖍️</span>
+              <span class="name">醜陋塗鴉</span>
+              <span class="desc">Threads 爆紅爛畫風</span>
+            </div>
+            <div class="style-btn" data-style="japan_illustration" onclick="selectOtherStyle(this)">
+              <span class="emoji">🎨</span>
+              <span class="name">手繪插畫</span>
+              <span class="desc">Threads 氛圍插畫風</span>
+            </div>
+            <div class="style-btn" data-style="anime_movie" onclick="selectOtherStyle(this)">
+              <span class="emoji">🎬</span>
+              <span class="name">美式電影</span>
+              <span class="desc">高級美式電影感</span>
+            </div>
+            <div class="style-btn" data-style="ghibli" onclick="selectOtherStyle(this)">
+              <span class="emoji">🌿</span>
+              <span class="name">日系動畫</span>
+              <span class="desc">溫暖日系動畫感</span>
+            </div>
+            <div class="style-btn" data-style="japan_handdrawn" onclick="selectOtherStyle(this)">
+              <span class="emoji">🖍️</span>
+              <span class="name">日系手繪</span>
+              <span class="desc">相片紙童趣手繪</span>
+            </div>
+            <div class="style-btn" data-style="visual_poster" onclick="selectOtherStyle(this)">
+              <span class="emoji">🖼️</span>
+              <span class="name">視覺海報</span>
+              <span class="desc">流行視覺編輯藝術</span>
+            </div>
           </div>
-          <div class="style-btn" data-bg="forest" onclick="selectBackground(this)">
-            <span class="emoji">🌲</span>
-            <span class="name">魔幻森林</span>
-            <span class="desc">灑落光影的森林</span>
-          </div>
-          <div class="style-btn" data-bg="cafe" onclick="selectBackground(this)">
-            <span class="emoji">☕</span>
-            <span class="name">復古咖啡廳</span>
-            <span class="desc">溫暖木質調氛圍</span>
-          </div>
-          <div class="style-btn" data-bg="beach" onclick="selectBackground(this)">
-            <span class="emoji">🏖️</span>
-            <span class="name">海灘假期</span>
-            <span class="desc">藍天碧海度假感</span>
-          </div>
-          <div class="style-btn" data-bg="party" onclick="selectBackground(this)">
-            <span class="emoji">🎉</span>
-            <span class="name">繽紛派對</span>
-            <span class="desc">氣球與慶祝氛圍</span>
-          </div>
-          <div class="style-btn" data-bg="studio" onclick="selectBackground(this)">
-            <span class="emoji">🎞️</span>
-            <span class="name">極簡攝影棚</span>
-            <span class="desc">純色簡約背景</span>
+
+          <div class="sub-label" style="margin-top:0.85rem;">選擇背景</div>
+          <div class="style-grid">
+            <div class="style-btn selected" data-bg="original" onclick="selectBackground(this)">
+              <span class="emoji">📷</span>
+              <span class="name">原本背景</span>
+              <span class="desc">保留拍攝時的背景</span>
+            </div>
+            <div class="style-btn" data-bg="garden" onclick="selectBackground(this)">
+              <span class="emoji">🌸</span>
+              <span class="name">夢幻花園</span>
+              <span class="desc">花海與柔和陽光</span>
+            </div>
+            <div class="style-btn" data-bg="night_city" onclick="selectBackground(this)">
+              <span class="emoji">🌃</span>
+              <span class="name">璀璨夜景</span>
+              <span class="desc">城市燈光與夜色</span>
+            </div>
+            <div class="style-btn" data-bg="forest" onclick="selectBackground(this)">
+              <span class="emoji">🌲</span>
+              <span class="name">魔幻森林</span>
+              <span class="desc">灑落光影的森林</span>
+            </div>
+            <div class="style-btn" data-bg="cafe" onclick="selectBackground(this)">
+              <span class="emoji">☕</span>
+              <span class="name">復古咖啡廳</span>
+              <span class="desc">溫暖木質調氛圍</span>
+            </div>
+            <div class="style-btn" data-bg="beach" onclick="selectBackground(this)">
+              <span class="emoji">🏖️</span>
+              <span class="name">海灘假期</span>
+              <span class="desc">藍天碧海度假感</span>
+            </div>
+            <div class="style-btn" data-bg="party" onclick="selectBackground(this)">
+              <span class="emoji">🎉</span>
+              <span class="name">繽紛派對</span>
+              <span class="desc">氣球與慶祝氛圍</span>
+            </div>
+            <div class="style-btn" data-bg="studio" onclick="selectBackground(this)">
+              <span class="emoji">🎞️</span>
+              <span class="name">極簡攝影棚</span>
+              <span class="desc">純色簡約背景</span>
+            </div>
           </div>
         </div>
       </div>
@@ -965,11 +1062,14 @@ body::before {
     <div id="result-area">
       <div class="result-img-container">
         <img id="result-img" src="" alt="轉換結果">
-        <span class="result-badge" id="style-badge">吉卜力</span>
+        <span class="result-badge" id="style-badge">日系動畫</span>
       </div>
       <div class="result-actions">
         <a id="dl-btn" class="btn-action" download="style_transfer.png">↓ 下載</a>
         <button class="btn-action primary" onclick="resetResult()">再轉一張</button>
+        <span class="time-tag" id="gen-time-tag" title="從按下生成到完成的實際耗時">
+          ⏱ <span class="time-val" id="gen-time-val">—</span>
+        </span>
         <span class="cost-tag" id="cost-tag" title="依 API 回傳的實際 token 用量換算；若無 usage 資料則顯示估算值">
           🪙 <span id="cost-model"></span> · 約 <span class="cost-val" id="cost-val"></span> / 張
         </span>
@@ -979,6 +1079,7 @@ body::before {
   </div>
 </div>
 
+<script src="IP/ip-data.js"></script>
 <script>
 const STYLE_MAP = {
 
@@ -1111,7 +1212,7 @@ Documentary photography quality, realistic museum lighting, accurate perspective
       Do not make it beautiful, polished, cinematic, or realistic.`,
         },
   scribble: {
-    name: "潦草塗鴉風",
+    name: "潦草速寫",
     prompt: `Redraw this image as a cute, simple amateur doodle. Preserve the main subjects, objects,
      shapes, poses, and overall composition of the original image. Use loose, wobbly black pen lines and rough scribbled strokes,
       like a quick sketch drawn by hand in a few minutes. Simplify facial features to minimal symbolic marks: small dot eyes and a short flat line mouth.
@@ -1121,20 +1222,8 @@ Documentary photography quality, realistic museum lighting, accurate perspective
          and a few colored squiggly lines in blue, yellow, or red to suggest light reflections, glowing effects, or highlights in the scene. 
          Keep all coloring hand-drawn and uneven, with visible pen strokes. Make the overall result look naive, playful, imperfect, and charming, like a personal casual sketchbook doodle.`,
   },
-  pikmin: {
-    name: "皮克敏",
-    prompt: `Transform this photo into a Pikmin inspired miniature fantasy world.
-      Keep the original people recognizable.
-      Turn the environment into a tiny whimsical nature ecosystem.
-      Add adorable Pikmin style plant creatures.
-      Soft Nintendo style rendering.
-      Moss, flowers, leaves, dirt textures, glowing atmosphere.
-      Cute cinematic adventure feeling.
-      Highly detailed but playful.
-      While fully committing to the Pikmin-style transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
-  },
   japan_illustration: {
-    name: "日系插畫",
+    name: "手繪插畫",
     prompt: `Transform this image into trendy Japanese illustration artwork.
 Keep the original person recognizable.
 Strong character personality and natural emotional expression.
@@ -1153,7 +1242,7 @@ Threads trending Japanese illustration style.
 While fully committing to the illustration transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
   },
   ghibli: {
-    name: "吉卜力",
+    name: "日系動畫",
     prompt: `Transform this image into a Studio Ghibli inspired animated film frame.
 Keep the original composition and people recognizable.
 Warm cinematic lighting.
@@ -1166,53 +1255,75 @@ Premium Japanese animation movie quality.
 While fully committing to the Ghibli-style transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
   },
   anime_movie: {
-    name: "動畫電影",
-    prompt: `Transform this image into a cinematic anime movie scene.
+    name: "美式電影",
+    prompt: `Transform this image into a cinematic American movie scene.
 Keep the original subjects recognizable.
 Dynamic camera angle.
-Dramatic anime lighting.
-Detailed anime rendering.
+Dramatic cinematic lighting.
+Detailed film-quality rendering.
 Film grain and depth of field.
 Epic emotional atmosphere.
-Premium Japanese animated movie quality.
-While fully committing to the anime transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
+Premium Hollywood / American animated movie quality.
+While fully committing to the cinematic transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
   },
-  scrapbook: {
-    name: "手帳貼紙",
-    prompt: `Transform this image into cute scrapbook collage art.
-Keep the people recognizable.
-Add white sticker borders around subjects.
-Handwritten notes, hearts, stars, arrows, doodles.
-Soft pastel color palette.
-Paper texture.
-Cute journal aesthetic.
-Instagram trendy scrapbook style.
-Decorative stickers around the composition.
-Warm cozy atmosphere.
-While fully committing to the scrapbook collage style, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable.`,
+  japan_handdrawn: {
+    name: "日系手繪",
+    prompt: `手繪相片紙插畫生成指令
+
+請使用我上傳的照片作為人物／動物參考，保留原人物或動物的五官、臉型、髮型、身形比例、外觀特徵與個人特色，不要改變角色身分。
+
+依照原始照片中的角色數量與組成進行生成，不論是單人、多人、動物、人與動物或其他組合，都請完整保留照片中的所有角色，不要自行增加或刪除角色。
+
+將角色轉換成可愛、簡單、像學生親手畫出來的黑白手繪插畫風格，模仿圖片中的童趣塗鴉感。
+
+畫面設定：
+
+依照原始照片中的角色數量進行呈現，可以是一個人物、多人、動物或人物與動物
+所有角色自然排列在一起，呈現溫暖、可愛的合照感覺
+全身入鏡，人物或動物比例稍微可愛、簡化
+彩色手繪線條
+線條帶有自然、不規則的手繪感，不要太精緻
+人物衣服與頭髮、動物毛髮與外觀使用大量彩色手繪塗鴉填色
+臉部保持簡潔，以簡單線條呈現五官
+人物可以加入淡淡的粉紅色腮紅
+保留人物原本的髮型與穿搭特色，或動物原本的外觀、毛色與花紋，但轉換成手繪塗鴉形式
+角色之間自然靠近或互動，呈現溫暖、可愛的氛圍
+背景為乾淨的純白色
+整體像是「自己畫給重要的人、朋友或寵物的紀念相片」，可愛、簡單、有手作感，適合直接印刷在相片紙上保存。
+
+構圖：
+
+採用適合相片紙列印的直式構圖，使用自然的直式照片比例，不使用過度狹長的手機桌布比例。角色完整呈現在畫面中央，人物或動物四周保留適度且均衡的白色留白，避免角色過度靠近畫面邊緣或被裁切。上下留白自然分配，讓整體畫面像一張完整的直式紀念相片，適合裁切與列印在相片紙上。
+
+整體風格參考：
+
+「小學生／手繪塗鴉、彩色原子筆插畫、可愛笨拙的手繪感、簡單線稿、紀念相片」。
+
+不要加入寫實攝影效果、3D效果、動漫風、精緻商業插畫風，也不要改變人物或動物的辨識特徵。不要產生過度狹長的手機桌布構圖，不要讓角色只集中在畫面下半部，不要留下過大的上下空白區域。`,
   },
-  painting: {
-    name: "油畫",
-    prompt: `Transform this image into a rich oil painting artwork.
-Keep the original composition recognizable.
-Visible thick brush strokes.
-Canvas texture.
-Painterly lighting.
-Classical art feeling with cinematic atmosphere.
-Detailed artistic rendering.
-While fully committing to the oil painting transformation, keep each person's core facial identity (face shape, eyes, nose, mouth, skin tone) recognizable within the painterly brushwork.`,
-  },
-  sketch: {
-    name: "彩色素描",
-    prompt: `Transform this image into a colored pencil sketch illustration.
-Keep the original composition recognizable.
-Visible sketch lines.
-Hand drawn texture.
-Soft shading.
-Sketchbook feeling.
-Paper grain texture.
-Artistic rough rendering.
-While fully committing to the pencil sketch transformation, keep each person's core facial identity (face shape, eyes, nose, mouth) recognizable within the sketch lines.`,
+  visual_poster: {
+    name: "視覺海報",
+    prompt: `您是世界頂尖的編輯藝術總監、品牌故事講述者、時裝設計師與視覺藝術家。您的工作並不是繪製人物肖像，而是透過與使用者的整段對話，深度理解其人生、價值觀、哲學、工作態度、處事之道、克服過的歷練、內在的堅韌與溫柔、對未來的冀望，以及渴望傳遞的價值；並將這個人「生存的方式」本身，轉化為一張流行視覺編輯藝術（Pop Graphic Editorial Art）。您所分析的不是外表，而是人生；您所設計的不是單純的人像，而是專屬於這個人的品牌。
+
+這件作品既非雜誌封面，亦非商業廣告，而是一幅將人物自身品牌化的視覺識別（Visual Identity）。人物既是主角，同時也是構成海報的設計元素之一。從背景、留白、色彩、線條、幾何圖形、時裝到飾品，都必須融為一體，以達到能於美術館展出的現代海報藝術完成度。畫風融合了日本現代插畫、海外海報藝術、北歐設計與時尚編輯的獨特世界觀。
+
+請勿使用寫實肖像或 3D CG 渲染，而應以賽璐珞風格的平塗色塊為基礎，將陰影簡化為 2 至 3 個階調。相較於立體感，請優先考量圖形設計的視覺美感。人物可以採用胸上或全身的平視/仰角構成，捕捉如電影畫面般的瞬間——例如側臉、微微側身、驀然回首、邁步向前，或是感受微風掠過的剎那。
+
+配色是作品靈魂的展現。請從對話中感應對方的價值觀、使命、情感與對未來的期許，每次都重新設計專屬於該人物的主色調。以 1 至 3 種鮮艷色彩為核心，自由組合如松綠、青色、珊瑚紅、鮮粉紅、洋紅、亮橙、純紅、明黃、萊姆綠、翡翠綠、紫色、皇家藍等色彩，創造出絕不重複的世界觀。避免使用相同的配色或版型，並以大膽的色塊構成背景約 50% 至 60% 的面積。背景並非真實風景。
+
+請自由組合圓形、半圓、色塊、筆觸、幾何圖形、網點（Halftone）、圖形線條、拼貼、墨滴噴灑、紙張質感與手繪紋理，並將留白視為設計的一環靈活運用。打造出一張能在瞬間吸引目光，並讓人忍不住好奇「這個人究竟是誰？」的海報。
+
+髮型無須逐根描繪，應以大塊髮束構成，必要時可加入鮮艷的點綴色。面部比例設定為小臉、修長頸部與微大的雙眼，自然展現出智慧、溫柔、靜謐的堅毅與對未來的希望。
+
+服裝是述說人生的語言。設定為世界頂級時裝屋專為此人量身打造的獨一無二訂製服，切勿模仿既有品牌，請進行完全原創的設計。自由搭配帽子、貝雷帽、禮服帽、眼鏡、墨鏡、耳骨夾、耳環、項鍊、胸針、戒指、手錶、包款、絲巾與髮飾等，且每一件配件都必須具備象徵人生、信念、挑戰、希望或溫柔的深刻意涵。
+
+作品中的每一個元素都帶有寓意。服裝象徵人生哲學、色彩代表情感、留白象徵未來、線條刻劃履歷、構圖展現生存方式、圖形代表思考的延伸，點綴色則象徵希望。沒有任何一個元素是隨機選擇的。
+
+畫面中不得出現任何文字或文字性元素。禁止出現英文、中文、日文或其他語言的單字、句子、標語、字母、數字、Logo、品牌名稱、字樣、標誌性文字、排版文字或可辨識的符號。不要加入任何標題、說明文字、裝飾性文字或類似印刷字體的元素。所有視覺內容都必須透過人物、服裝、色彩、圖形、線條、構圖與象徵性元素來傳達，不使用文字表達概念。
+
+這不是一段解釋，而是一幅能激發觀者想像力，讓人想要去思考「這個人究竟走過了怎樣的人生，又將孕育出怎樣的未來？」的獨一無二視覺編輯藝術作品。
+
+請使用上傳的照片作為人物參考，保留可辨識的五官、臉型、髮型與個人特色，並依上述指示完成視覺海報。`,
   },
 
 };
@@ -1266,6 +1377,131 @@ Replace the background with a clean minimal solid-color studio backdrop, soft ev
 Blend the new background seamlessly with the chosen art style, matching its lighting, color palette, and rendering technique.`,
   },
 };
+
+/**
+ * 「其他風格 → IP合照」可選角色。
+ * hasLimbs：有四肢用「一起散步」；無四肢用「同框＋原圖貼上」。
+ * @type {Record<string, { name: string, src: string, hasLimbs: boolean }>}
+ */
+const IP_CHARACTERS = {
+  rock_ip: {
+    name: "石人 IP",
+    src: "IP/IP.jpg",
+    hasLimbs: true,
+  },
+  catch_cat: {
+    name: "@CATch笑貓",
+    src: "IP/catch_cat.jpg",
+    hasLimbs: true,
+  },
+  ocat: {
+    name: "O-cat不理貓",
+    src: "IP/ocat.jpg",
+    hasLimbs: true,
+  },
+  fantasy_forest: {
+    name: "異想之森",
+    src: "IP/fantasy_forest.jpg",
+    hasLimbs: true,
+  },
+  coomi: {
+    name: "酷米原始人",
+    src: "IP/coomi.jpg",
+    hasLimbs: true,
+  },
+  buddy: {
+    name: "不知道同學",
+    src: "IP/buddy.jpg",
+    hasLimbs: false,
+  },
+  pending: {
+    name: "待測試02",
+    src: "IP/pending.jpg",
+    hasLimbs: false,
+  },
+  boba: {
+    name: "波霸奶茶",
+    src: "IP/boba.jpg",
+    hasLimbs: false,
+  },
+};
+
+/** 銀杏場景共用描述 */
+const GINKGO_SCENE = `Scene: lush golden ginkgo forest in peak autumn; thick carpet of fallen bright yellow ginkgo leaves; tall ginkgo trees with vibrant yellow foliage; soft warm overcast daylight; a few yellow leaves drifting in the air.
+Match lighting, shadows, perspective, color temperature, and photographic quality so both belong in the same scene.`;
+
+/**
+ * 有四肢 IP：銀杏森林一起散步。
+ * 人物姿勢鎖定原圖；IP 模仿人物動作，但不可改風格（2D 不可變 3D）。
+ */
+const GINKGO_IP_PROMPT_WALK = `Composite these two reference images into one natural candid photograph of a shared autumn walk.
+The left image is the real person; the right image is the IP character reference.
+
+Place both figures side by side together in a lush golden ginkgo forest, feeling like companions on a shared stroll.
+
+CRITICAL — real person lock (do not change the person):
+Preserve EXACTLY the same face, body shape, proportions, pose, posture, head angle, hand gestures, arm positions, facial expression, hairstyle, skin tone, clothing, fabric details, accessories, and identity as the left photo.
+Do not beautify, restyle, re-pose, change expression, or alter outfit.
+Keep the person's original body language and upper-body pose exactly — do not invent a new walking arm swing if it was not in the photo.
+
+CRITICAL — IP mimics the person's action, style stays unchanged:
+The IP character should imitate / mirror the real person's pose and gesture as closely as its design allows (same overall body language, arm/hand feeling, stance direction).
+ONLY adjust the IP's pose/action. Do NOT change the IP's art style.
+Keep the IP's EXACT original rendering style from the right reference: if it is 2D flat illustration / sticker / cartoon, it MUST remain 2D flat illustration / sticker / cartoon.
+Do NOT turn the IP into 3D, CGI, plastic toy, plush, mascot suit, cardboard standee with fake depth, or photorealistic rendering.
+Preserve exact design, silhouette, colors, proportions, costume, props, face, line style, shading style, and signature details — zero redesign, zero restyle, zero recolor.
+Do not invent extra limbs beyond what exists in the IP reference.
+
+Do not cover, replace, or distort either subject.
+Full-body framing of the real person (head to feet). Show the complete IP as designed. Keep realistic scale between them.
+
+${GINKGO_SCENE}`;
+
+/**
+ * 無四肢 IP：銀杏森林同框；IP 直接用原圖貼上，禁止改設計。
+ */
+const GINKGO_IP_PROMPT_STILL = `Composite these two reference images into one natural candid photograph.
+The left image is the real person; the right image is the IP character reference.
+Place both of them in the same frame inside a lush golden ginkgo forest — same-frame photo together, NOT walking, NOT strolling.
+
+CRITICAL — paste the IP original as-is (highest priority):
+Composite the IP by placing the ORIGINAL reference artwork into the scene like a faithful overlay / cutout paste.
+Keep the IP's EXACT original look from the right reference: silhouette, pose, expression, colors, costume, props, and every signature detail — zero redesign.
+Do NOT re-pose, restyle, recolor, or alter the IP in any way.
+
+Real person: preserve EXACTLY the same body shape, proportions, pose, facial expression, face, hairstyle, clothing, and identity as the left photo. Do not change outfit, expression, or body.
+
+Framing: real person full-body (head to feet). Show the complete original IP design beside them. Do not cover or alter either subject. Keep realistic scale.
+
+${GINKGO_SCENE}`;
+
+/**
+ * 依所選 IP 回傳銀杏合照提示詞。
+ * @returns {string}
+ */
+function getGinkgoIpPrompt() {
+  const ip = IP_CHARACTERS[selectedIpCharacter];
+  if (!ip) return "（請先選擇 IP 角色）";
+  return ip.hasLimbs ? GINKGO_IP_PROMPT_WALK : GINKGO_IP_PROMPT_STILL;
+}
+
+/**
+ * 同步 IP 情境說明文字。
+ * @returns {void}
+ */
+function syncIpSceneNote() {
+  const note = document.getElementById("ip-scene-note");
+  if (!note) return;
+  const ip = IP_CHARACTERS[selectedIpCharacter];
+  if (!ip) {
+    note.innerHTML =
+      "<strong>固定情境：</strong>銀杏森林 · 依角色類型自動切換「一起散步」或「同框原圖」";
+    return;
+  }
+  note.innerHTML = ip.hasLimbs
+    ? `<strong>固定情境：</strong>銀杏森林一起散步 · ${ip.name} · 人物動作鎖定 · IP 模仿動作但維持原風格（2D 不變 3D）`
+    : `<strong>固定情境：</strong>銀杏森林同框 · ${ip.name} · IP 原圖直接貼上、不改樣子`;
+}
 
 const MSGS = ["正在施魔法...", "融合風格中...", "手繪細節中...", "快好了..."];
 
@@ -1325,6 +1561,10 @@ let msgTimer = null;
 let selectedTheme = "archaeologist";
 let selectedRender = "anime";
 let activeTab = "museum";
+/** @type {"" | "ip" | "style"} 「其他風格」底下的模式 */
+let otherMode = "";
+/** @type {string} 銀杏 IP 合照所選角色 key */
+let selectedIpCharacter = "";
 
 // ---- 商品與尺寸 ----
 let selectedProduct = "photo";
@@ -1423,10 +1663,62 @@ function switchTab(tab) {
   document.getElementById("panel-other").style.display = tab === "other" ? "block" : "none";
   if (tab === "museum") {
     selectedStyle = "";
-    document.querySelectorAll("#panel-other [data-style]").forEach(b => b.classList.remove("selected"));
-  } else {
-    document.querySelectorAll("#panel-other [data-style]").forEach(b => b.classList.remove("selected"));
+    otherMode = "";
+    selectedIpCharacter = "";
+    document.querySelectorAll("#panel-other [data-style]").forEach((b) => b.classList.remove("selected"));
+    document.querySelectorAll("#panel-other [data-other-mode]").forEach((b) => b.classList.remove("selected"));
+    document.querySelectorAll("#panel-other [data-ip]").forEach((b) => b.classList.remove("selected"));
+    syncOtherModePanels();
+    syncIpSceneNote();
   }
+  updatePromptPreview();
+}
+
+/**
+ * 切換「其他風格」模式：IP合照 / 風格轉換。
+ * @param {HTMLElement} el
+ * @returns {void}
+ */
+function selectOtherMode(el) {
+  document.querySelectorAll("#panel-other [data-other-mode]").forEach((b) => b.classList.remove("selected"));
+  el.classList.add("selected");
+  otherMode = /** @type {"" | "ip" | "style"} */ (el.dataset.otherMode || "");
+
+  // 切換模式時清掉另一路的選擇，避免狀態串味
+  if (otherMode === "ip") {
+    selectedStyle = "";
+    document.querySelectorAll("#panel-other [data-style]").forEach((b) => b.classList.remove("selected"));
+  } else if (otherMode === "style") {
+    selectedIpCharacter = "";
+    document.querySelectorAll("#panel-other [data-ip]").forEach((b) => b.classList.remove("selected"));
+    syncIpSceneNote();
+  }
+
+  syncOtherModePanels();
+  updatePromptPreview();
+}
+
+/**
+ * 顯示／隱藏 IP合照 與 風格轉換 子面板。
+ * @returns {void}
+ */
+function syncOtherModePanels() {
+  const ipPanel = document.getElementById("other-sub-ip");
+  const stylePanel = document.getElementById("other-sub-style");
+  if (ipPanel) ipPanel.style.display = otherMode === "ip" ? "block" : "none";
+  if (stylePanel) stylePanel.style.display = otherMode === "style" ? "block" : "none";
+}
+
+/**
+ * 選擇銀杏 IP 合照的角色。
+ * @param {HTMLElement} el
+ * @returns {void}
+ */
+function selectIpCharacter(el) {
+  document.querySelectorAll("#panel-other [data-ip]").forEach((b) => b.classList.remove("selected"));
+  el.classList.add("selected");
+  selectedIpCharacter = el.dataset.ip || "";
+  syncIpSceneNote();
   updatePromptPreview();
 }
 
@@ -1528,12 +1820,20 @@ function getBasePrompt() {
   if (activeTab === "museum") {
     const key = `${selectedTheme}_${selectedRender}`;
     return STYLE_MAP[key]?.prompt || "（請先選擇角色與畫風）";
-  } else {
+  }
+  if (otherMode === "ip") {
+    if (!selectedIpCharacter || !IP_CHARACTERS[selectedIpCharacter]) {
+      return "（請先選擇 IP 角色）";
+    }
+    return getGinkgoIpPrompt();
+  }
+  if (otherMode === "style") {
     const base = STYLE_MAP[selectedStyle]?.prompt;
     if (!base) return "（請先選擇風格）";
     const bg = BACKGROUND_MAP[selectedBackground]?.prompt || "";
     return base + bg;
   }
+  return "（請先選擇「IP合照」或「風格轉換」）";
 }
 
 /**
@@ -1541,7 +1841,7 @@ function getBasePrompt() {
  * @returns {boolean}
  */
 function allowsGeneratedText() {
-  return activeTab === "other" && TEXT_ALLOWED_STYLES.has(selectedStyle);
+  return activeTab === "other" && otherMode === "style" && TEXT_ALLOWED_STYLES.has(selectedStyle);
 }
 
 /**
@@ -1630,18 +1930,47 @@ function loadImageFromFile(file) {
 }
 
 /**
+ * 從 data URL / blob URL 載入圖片（同源，不會污染 canvas）。
+ * @param {string} url
+ * @returns {Promise<HTMLImageElement>}
+ */
+function loadImageFromObjectUrl(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("無法讀取圖片"));
+    img.src = url;
+  });
+}
+
+/**
  * 從相對路徑載入圖片為 HTMLImageElement。
+ * 優先使用預載 data URL，否則 fetch 成 blob，避免 file:// 污染 canvas。
  * @param {string} src
  * @returns {Promise<HTMLImageElement>}
  */
-function loadImageFromUrl(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`無法載入 IP 圖片（${src}），請確認 img/IP.jpg 已放於同資料夾`));
-    img.src = src + "?t=" + Date.now();
-  });
+async function loadImageFromUrl(src) {
+  const embedded = typeof window.IP_DATA_URLS === "object" && window.IP_DATA_URLS
+    ? window.IP_DATA_URLS[src]
+    : null;
+  if (embedded) {
+    return loadImageFromObjectUrl(embedded);
+  }
+
+  try {
+    const res = await fetch(encodeURI(src));
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    try {
+      const img = await loadImageFromObjectUrl(objUrl);
+      return img;
+    } finally {
+      URL.revokeObjectURL(objUrl);
+    }
+  } catch (err) {
+    throw new Error(`無法載入 IP 圖片（${src}），請確認圖檔已放於同資料夾`);
+  }
 }
 
 /**
@@ -1855,6 +2184,33 @@ function computeActualCostUsd(usage) {
   return textIn * TOKEN_RATE_USD.textInput + imageIn * TOKEN_RATE_USD.imageInput + outTok * TOKEN_RATE_USD.output;
 }
 
+/**
+ * 將使用者照片與指定 IP 圖並排合成後，縮放為可上傳 PNG。
+ * @param {string} ipSrc IP 圖片相對路徑
+ * @returns {Promise<File>}
+ */
+async function composeUserWithIp(ipSrc) {
+  const userImg = await loadImageFromFile(currentFile);
+  const ipImg = await loadImageFromUrl(ipSrc);
+
+  const targetH = Math.max(userImg.naturalHeight, ipImg.naturalHeight, 600);
+  const wUser = Math.round(userImg.naturalWidth * (targetH / userImg.naturalHeight));
+  const wIp = Math.round(ipImg.naturalWidth * (targetH / ipImg.naturalHeight));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = wUser + wIp;
+  canvas.height = targetH;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(userImg, 0, 0, wUser, targetH);
+  ctx.drawImage(ipImg, wUser, 0, wIp, targetH);
+
+  const blob = await new Promise((res, rej) =>
+    canvas.toBlob((b) => (b ? res(b) : rej(new Error("合成圖片失敗"))), "image/png")
+  );
+  const compositeFile = new File([blob], "composite.png", { type: "image/png" });
+  return resizeImageForUploadAsPng(compositeFile, MAX_IMAGE_LONG_EDGE * 2);
+}
+
 async function generate() {
   hideError();
   if (!currentFile) {
@@ -1866,13 +2222,24 @@ async function generate() {
     showError("請輸入 OpenAI API Key");
     return;
   }
-  if (activeTab === "other" && !selectedStyle) {
-    showError("請先在「其他風格」中選擇一個風格");
-    return;
+  if (activeTab === "other") {
+    if (!otherMode) {
+      showError("請先選擇「IP合照」或「風格轉換」");
+      return;
+    }
+    if (otherMode === "ip" && !selectedIpCharacter) {
+      showError("請先選擇一個 IP 角色");
+      return;
+    }
+    if (otherMode === "style" && !selectedStyle) {
+      showError("請先選擇一個風格");
+      return;
+    }
   }
 
   setLoading(true);
   document.getElementById("result-area").style.display = "none";
+  const genStartedAt = performance.now();
 
   try {
     let prompt = "";
@@ -1890,29 +2257,21 @@ async function generate() {
       displayName = STYLE_MAP[key].name;
 
       if (selectedTheme === "ip") {
-        // 與IP合照：Canvas 合成使用者照片 + img/IP.jpg 後送 API
-        const userImg = await loadImageFromFile(currentFile);
-        const ipImg = await loadImageFromUrl("img/IP.jpg");
-
-        const targetH = Math.max(userImg.naturalHeight, ipImg.naturalHeight, 600);
-        const wUser = Math.round(userImg.naturalWidth * (targetH / userImg.naturalHeight));
-        const wIp   = Math.round(ipImg.naturalWidth  * (targetH / ipImg.naturalHeight));
-
-        const canvas = document.createElement("canvas");
-        canvas.width  = wUser + wIp;
-        canvas.height = targetH;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(userImg, 0,     0, wUser, targetH);
-        ctx.drawImage(ipImg,   wUser, 0, wIp,   targetH);
-
-        const blob = await new Promise((res, rej) =>
-          canvas.toBlob(b => b ? res(b) : rej(new Error("合成圖片失敗")), "image/png")
-        );
-        const compositeFile = new File([blob], "composite.png", { type: "image/png" });
-        fileToSend = await resizeImageForUploadAsPng(compositeFile, MAX_IMAGE_LONG_EDGE * 2);
+        // 與IP合照：Canvas 合成使用者照片 + IP/IP.jpg 後送 API
+        fileToSend = await composeUserWithIp("IP/IP.jpg");
       } else {
         fileToSend = await resizeImageForUploadAsPng(currentFile, MAX_IMAGE_LONG_EDGE);
       }
+    } else if (otherMode === "ip") {
+      const ip = IP_CHARACTERS[selectedIpCharacter];
+      if (!ip) {
+        showError("找不到對應的 IP 角色");
+        setLoading(false);
+        return;
+      }
+      prompt = buildFullPrompt();
+      displayName = `銀杏IP合照 · ${ip.name}`;
+      fileToSend = await composeUserWithIp(ip.src);
     } else {
       if (!selectedStyle || !STYLE_MAP[selectedStyle]) {
         showError("請先選擇一個風格");
@@ -1931,7 +2290,8 @@ async function generate() {
     const costText = actualCost != null
       ? `$${actualCost.toFixed(4)} USD`
       : getEstimatedCostText(sizeEntry) + '（估算）';
-    showResult(dataUrl, displayName + ' · ' + getSizeLabel(), costText);
+    const elapsedMs = performance.now() - genStartedAt;
+    showResult(dataUrl, displayName + ' · ' + getSizeLabel(), costText, elapsedMs);
   } catch (e) {
     showError("錯誤：" + (e && e.message ? e.message : String(e)));
     document.getElementById("empty-state").style.display = "flex";
@@ -1941,15 +2301,33 @@ async function generate() {
 }
 
 /**
+ * 格式化生成耗時。
+ * @param {number} ms
+ * @returns {string}
+ */
+function formatElapsedTime(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return "—";
+  const totalSec = ms / 1000;
+  if (totalSec < 60) return totalSec.toFixed(1) + " 秒";
+  const mins = Math.floor(totalSec / 60);
+  const secs = Math.round(totalSec % 60);
+  return mins + " 分 " + secs + " 秒";
+}
+
+/**
  * 顯示結果圖；若為遠端 URL 則下載連結沿用該 URL。
  * @param {string} dataUrlOrHttp
+ * @param {string} [displayName]
+ * @param {string} [costText]
+ * @param {number} [elapsedMs]
  */
-function showResult(dataUrlOrHttp, displayName, costText) {
+function showResult(dataUrlOrHttp, displayName, costText, elapsedMs) {
   document.getElementById("result-img").src = dataUrlOrHttp;
   document.getElementById("dl-btn").href = dataUrlOrHttp;
   document.getElementById("style-badge").textContent = displayName || "轉換完成";
   document.getElementById("cost-model").textContent = selectedModel + " · " + selectedQuality;
   document.getElementById("cost-val").textContent = costText || "—";
+  document.getElementById("gen-time-val").textContent = formatElapsedTime(elapsedMs);
   document.getElementById("result-area").style.display = "flex";
   document.getElementById("empty-state").style.display = "none";
 }
