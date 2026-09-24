@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Generate ip-data.js with compressed JPEG data URLs for offline canvas-safe loading."""
+"""Generate ip-data.js with compressed PNG data URLs (preserve transparency)."""
 from pathlib import Path
 import io
 import base64
@@ -11,14 +11,22 @@ except ImportError:
 
 ip_dir = Path(__file__).resolve().parent
 files = [
-    "IP.jpg",
-    "buddy.jpg",
-    "catch_cat.jpg",
-    "ocat.jpg",
-    "fantasy_forest.jpg",
-    "coomi.jpg",
-    "pending.jpg",
-    "boba.jpg",
+    "IP.png",
+    "catch_cat.png",
+    "ocat.png",
+    "fantasy_forest.png",
+    "coomi.png",
+    "pending.png",
+    "boba.png",
+    "leboo.png",
+    "zono.png",
+    "jujiao.png",
+    "daily_art.png",
+    "fat_rabbit.png",
+    "watermelon.png",
+    "banana_star.png",
+    "ahmiaw.png",
+    "mochi.png",
 ]
 out = {}
 
@@ -27,7 +35,7 @@ for name in files:
     if not p.exists():
         print("MISSING", name)
         continue
-    img = Image.open(p).convert("RGB")
+    img = Image.open(p).convert("RGBA")
     w, h = img.size
     long = max(w, h)
     max_edge = 1200
@@ -38,18 +46,18 @@ for name in files:
             Image.Resampling.LANCZOS,
         )
     buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=85, optimize=True)
+    img.save(buf, format="PNG", optimize=True)
     b64 = base64.b64encode(buf.getvalue()).decode("ascii")
     out["IP/" + name] = b64
     print(name, img.size, len(b64))
 
 js_path = ip_dir / "ip-data.js"
 parts = [
-    "/** 預載 IP 圖（data URL），避免 file:// 造成 canvas 污染 */",
+    "/** 預載 IP 圖（PNG data URL，保留去背透明） */",
     "window.IP_DATA_URLS = {",
 ]
 for k, v in out.items():
-    parts.append(f'  "{k}": "data:image/jpeg;base64,{v}",')
+    parts.append(f'  "{k}": "data:image/png;base64,{v}",')
 parts.append("};")
 js_path.write_text("\n".join(parts) + "\n", encoding="utf-8")
 print("wrote", js_path, "bytes", js_path.stat().st_size)
