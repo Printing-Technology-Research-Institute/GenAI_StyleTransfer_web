@@ -23,6 +23,7 @@ files = [
     "jujiao.png",
     "daily_art.png",
     "fat_rabbit.png",
+    "養胖夥伴.png",
     "watermelon.png",
     "banana_star.png",
     "ahmiaw.png",
