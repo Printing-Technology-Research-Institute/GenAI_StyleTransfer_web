@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-"""Generate ip-data.js with compressed PNG data URLs (preserve transparency)."""
+﻿# -*- coding: utf-8 -*-
+"""Generate ip-data.js with PNG data URLs (preserve transparency)."""
 from pathlib import Path
 import io
 import base64
@@ -10,25 +10,7 @@ except ImportError:
     raise SystemExit("Please install Pillow: pip install Pillow")
 
 ip_dir = Path(__file__).resolve().parent
-files = [
-    "IP.png",
-    "catch_cat.png",
-    "ocat.png",
-    "fantasy_forest.png",
-    "coomi.png",
-    "pending.png",
-    "boba.png",
-    "leboo.png",
-    "zono.png",
-    "jujiao.png",
-    "daily_art.png",
-    "fat_rabbit.png",
-    "養胖夥伴.png",
-    "watermelon.png",
-    "banana_star.png",
-    "ahmiaw.png",
-    "mochi.png",
-]
+files = ["IP.png", "Omu.png"]
 out = {}
 
 for name in files:

@@ -1,4 +1,8 @@
-img/
+img/*
+!img/ChatGPT/
+!img/ChatGPT/**
+!img/style_transfer_with_tabs/
+!img/style_transfer_with_tabs/**
 ChatGPT-img/
 openAI-key.txt
 gemini-key.txt

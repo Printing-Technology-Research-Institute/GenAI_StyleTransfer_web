@@ -135,6 +135,44 @@ body::before {
 }
 .toggle-key-sm:hover { color: var(--c2); }
 
+.settings-btn {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(167,139,250,.35);
+  background: var(--surface2);
+  color: var(--c4);
+  cursor: pointer;
+  font-size: 1.05rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .15s, background .15s, transform .15s;
+  font-family: var(--font);
+  padding: 0;
+}
+.settings-btn:hover { border-color: var(--c4); background: rgba(167,139,250,.12); transform: translateY(-1px); }
+.settings-btn[aria-expanded="true"] { background: rgba(167,139,250,.18); border-color: var(--c4); }
+
+.settings-popover {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(360px, calc(100vw - 24px));
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 1rem 1.05rem;
+  box-shadow: 0 16px 48px rgba(0,0,0,.55);
+  z-index: 40;
+}
+.settings-popover.show { display: block; }
+.settings-popover h3 {
+  font-size: .88rem;
+  font-weight: 800;
+  margin-bottom: .75rem;
+  color: var(--text);
+}
+.settings-anchor { position: relative; }
+
 /* ── Workspace ── */
 .workspace {
   display: grid;
@@ -145,17 +183,16 @@ body::before {
   position: relative; z-index: 1;
 }
 
-/* ── Left panel ── */
+/* ── Left panel：整欄鎖在視窗內，中間精靈區捲動，下方按鈕不跑掉 ── */
 .left-panel {
   border-right: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  min-height: 0;
+  height: 100%;
   background: rgba(15,14,23,0.6);
 }
-.left-panel::-webkit-scrollbar { width: 4px; }
-.left-panel::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
 
 /* ── Section ── */
 .section {
@@ -195,7 +232,7 @@ body::before {
 .upload-zone {
   border: 2px dashed rgba(255,255,255,0.15);
   border-radius: var(--radius);
-  padding: 1.8rem 1rem;
+  padding: 1.1rem 1rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.25s;
@@ -218,11 +255,13 @@ body::before {
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
-  aspect-ratio: 4/3;
+  max-height: 132px;
+  height: 132px;
   background: var(--surface2);
   border: 1px solid var(--border2);
 }
 .thumb-wrap img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.section-upload { flex-shrink: 0; }
 .thumb-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(to bottom, transparent 55%, rgba(10,9,20,0.88));
@@ -284,12 +323,38 @@ body::before {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  max-height: 440px;
+  max-height: none;
+  overflow: visible;
+  padding-right: 2px;
+}
+.section-wizard {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.section-wizard .section-label,
+.section-wizard #wizard-hint {
+  flex-shrink: 0;
+}
+.section-wizard #wizard-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   padding-right: 2px;
 }
-.style-grid::-webkit-scrollbar { width: 3px; }
-.style-grid::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+.section-wizard #wizard-body::-webkit-scrollbar { width: 4px; }
+.section-wizard #wizard-body::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+.wizard-nav {
+  display: flex;
+  gap: 8px;
+  margin-top: 0.75rem;
+  flex-shrink: 0;
+  padding-top: 0.35rem;
+}
 
 .style-btn {
   background: var(--surface2);
@@ -323,6 +388,7 @@ body::before {
 /* IP 角色縮圖按鈕 */
 .style-btn .ip-thumb {
   width: 100%;
+  max-height: 88px;
   aspect-ratio: 1;
   object-fit: contain;
   border-radius: 10px;
@@ -361,7 +427,12 @@ body::before {
 }
 
 /* ── Generate button ── */
-.generate-wrap { padding: 1rem 1.4rem 1.4rem; }
+.generate-wrap { padding: 0.75rem 1.4rem 1.1rem; flex-shrink: 0; }
+.left-footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  background: rgba(15,14,23,0.92);
+}
 
 #generate-btn {
   width: 100%;
@@ -407,10 +478,11 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  justify-content: flex-start;
+  padding: 1.2rem;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   min-height: 0;
 }
 
@@ -431,8 +503,12 @@ body::before {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 1.2rem;
+  position: absolute;
+  inset: 0;
   animation: floatUp 3s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 @keyframes floatUp { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 .empty-state .empty-icon { font-size: 4rem; filter: drop-shadow(0 0 16px rgba(78,205,196,0.4)); }
@@ -482,69 +558,37 @@ body::before {
 #result-area {
   display: none;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1.1rem;
-  overflow: auto;
+  padding: 1.2rem 1rem 1.6rem;
+  box-sizing: border-box;
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 @keyframes popIn { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
 .result-img-container {
   position: relative;
-  border-radius: 18px;
-  overflow: hidden;
-  border: 2px solid rgba(255,255,255,0.1);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
-  max-width: 100%;
+  border-radius: 12px;
+  overflow: visible;
+  border: none;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+  max-width: min(100%, 380px);
+  width: min(100%, 380px);
+  flex-shrink: 0;
+  margin: 0 auto;
 }
-.result-img-container img {
-  display: block;
-  max-width: 100%;
-  max-height: calc(100vh - 54px - 140px);
-  object-fit: contain;
-}
-.result-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  width: min(100%, 760px);
-}
-.result-card {
-  position: relative;
-  padding: 0;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 2px solid rgba(255,255,255,0.1);
-  background: #0c0b14;
-  cursor: pointer;
-  font-family: var(--font);
-  color: inherit;
-}
-.result-card.selected {
-  border-color: var(--c2);
-  box-shadow: 0 0 16px rgba(78,205,196,0.28);
-}
-.result-card img {
+.result-img-container img,
+#result-img {
   display: block;
   width: 100%;
-  max-height: min(38vh, 360px);
+  height: auto;
+  max-width: 100%;
+  max-height: min(58vh, 520px);
   object-fit: contain;
-  background: #0c0b14;
-}
-.result-card .card-index {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(15,14,23,0.85);
-  border: 1px solid rgba(78,205,196,0.35);
-  border-radius: 8px;
-  padding: 2px 8px;
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--c2);
+  margin: 0 auto;
 }
 .result-badge {
   position: absolute; top: 12px; left: 12px;
@@ -694,8 +738,9 @@ body::before {
 
 /* ── Prompt preview ── */
 .prompt-preview-wrap {
-  padding: 1rem 1.4rem 0.8rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 0.75rem 1.4rem 0.5rem;
+  border-top: none;
+  flex-shrink: 0;
 }
 .prompt-preview-header {
   display: flex;
@@ -726,8 +771,8 @@ body::before {
 .prompt-copy-btn.copied { border-color: var(--success); color: var(--success); box-shadow: 0 0 8px rgba(78,205,196,0.2); }
 #prompt-preview-box {
   width: 100%;
-  min-height: 88px;
-  max-height: 150px;
+  min-height: 56px;
+  max-height: 96px;
   background: var(--surface2);
   border: 1.5px solid var(--border);
   border-radius: 12px;
@@ -777,10 +822,42 @@ body::before {
     <span class="topbar-title">✦ 風格魔法師</span>
     <span class="topbar-badge" id="model-badge">GPT Image 2.5 Flare</span>
   </div>
-  <div class="api-pill">
-    <div class="api-pill-dot" id="key-dot"></div>
-    <input type="password" id="api-key" placeholder="貼上 OpenAI API Key" spellcheck="false" autocomplete="off">
-    <button class="toggle-key-sm" onclick="toggleKey()">顯示</button>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <a href="admin.html" class="toggle-key-sm" style="text-decoration:none;font-weight:800;color:var(--c4);padding:6px 10px;border:1px solid rgba(167,139,250,.35);border-radius:999px;">⚙ 後台</a>
+    <div class="settings-anchor">
+      <button type="button" class="settings-btn" id="settings-btn" aria-expanded="false" aria-controls="settings-popover" title="生成設定（模型／畫質）">🎛</button>
+      <div class="settings-popover" id="settings-popover" role="dialog" aria-label="生成設定">
+        <h3>生成設定</h3>
+        <div class="sub-label">選擇模型</div>
+        <div class="option-row" id="model-row">
+          <button type="button" class="option-btn" data-model="gpt-image-2" onclick="selectModel(this)">
+            <span class="o-name">GPT Image 2</span>
+            <span class="o-desc">原本這版 · 較穩、較慢</span>
+          </button>
+          <button type="button" class="option-btn selected" data-model="gpt-image-2.5-flare" onclick="selectModel(this)">
+            <span class="o-name">2.5 Flare</span>
+            <span class="o-desc">建議對照 · 約快 50%</span>
+          </button>
+        </div>
+        <div class="sub-label" style="margin-top:0.85rem;">選擇畫質</div>
+        <div class="option-row" id="quality-row">
+          <button type="button" class="option-btn selected" data-quality="low" onclick="selectQuality(this)">
+            <span class="o-name">Low</span>
+            <span class="o-desc">約 15–25 秒 · 較省</span>
+          </button>
+          <button type="button" class="option-btn" data-quality="medium" onclick="selectQuality(this)">
+            <span class="o-name">Medium</span>
+            <span class="o-desc">約 35–80 秒 · 較細</span>
+          </button>
+        </div>
+        <div class="option-note" id="text-policy-note" style="margin-top:0.75rem;"></div>
+      </div>
+    </div>
+    <div class="api-pill">
+      <div class="api-pill-dot" id="key-dot"></div>
+      <input type="password" id="api-key" placeholder="貼上 OpenAI API Key" spellcheck="false" autocomplete="off">
+      <button class="toggle-key-sm" onclick="toggleKey()">顯示</button>
+    </div>
   </div>
 </div>
 
@@ -789,7 +866,7 @@ body::before {
   <!-- LEFT -->
   <div class="left-panel">
 
-    <div class="section">
+    <div class="section section-upload">
       <div class="section-label">
         <span class="step-num" id="step1-dot">1</span>上傳圖片
       </div>
@@ -807,330 +884,37 @@ body::before {
       </div>
     </div>
 
-    <div class="section">
+    <div class="section section-wizard">
       <div class="section-label">
-        <span class="step-num done" id="step2-dot">2</span>選擇風格
+        <span class="step-num" id="step2-dot">2</span>
+        <span id="wizard-step-label">Step 1 · 大分項</span>
       </div>
-
-      <!-- Tab 切換 -->
-      <div class="tab-row">
-        <button class="tab-btn active" id="tab-museum" onclick="switchTab('museum')">🏛️ 考古館</button>
-        <button class="tab-btn" id="tab-other" onclick="switchTab('other')">✨ 其他風格</button>
-      </div>
-
-      <!-- 考古館 Panel -->
-      <div id="panel-museum">
-        <div class="sub-label">選擇角色</div>
-        <div class="style-grid">
-          <div class="style-btn selected" data-theme="archaeologist" onclick="selectTheme(this)">
-            <span class="emoji">🏺</span>
-            <span class="name">考古學家</span>
-            <span class="desc">穿考古服探索遺跡</span>
-          </div>
-          <div class="style-btn" data-theme="prehistoric" onclick="selectTheme(this)">
-            <span class="emoji">🔥</span>
-            <span class="name">史前人類</span>
-            <span class="desc">陶器與玉器文化</span>
-          </div>
-          <div class="style-btn" data-theme="ip" onclick="selectTheme(this)">
-            <span class="emoji">🤝</span>
-            <span class="name">與IP合照</span>
-            <span class="desc">與館方IP角色同框</span>
-          </div>
-        </div>
-
-        <div class="sub-label" style="margin-top:0.85rem;">選擇畫風</div>
-        <div class="style-grid">
-          <div class="style-btn" data-render="realistic" onclick="selectRender(this)">
-            <span class="emoji">📷</span>
-            <span class="name">寫實風</span>
-          </div>
-          <div class="style-btn selected" data-render="anime" onclick="selectRender(this)">
-            <span class="emoji">🎬</span>
-            <span class="name">動畫風</span>
-          </div>
-          <div class="style-btn" data-render="illustration" onclick="selectRender(this)">
-            <span class="emoji">🎨</span>
-            <span class="name">插畫風</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 其他風格 Panel：先選模式，再選 IP / 風格 -->
-      <div id="panel-other" style="display:none;">
-        <div class="sub-label">選擇模式</div>
-        <div class="style-grid">
-          <div class="style-btn" data-other-mode="ip" onclick="selectOtherMode(this)">
-            <span class="emoji">🍂</span>
-            <span class="name">IP合照</span>
-            <span class="desc">銀杏森林與角色同框</span>
-          </div>
-          <div class="style-btn" data-other-mode="style" onclick="selectOtherMode(this)">
-            <span class="emoji">✨</span>
-            <span class="name">風格轉換</span>
-            <span class="desc">套用藝術風格與背景</span>
-          </div>
-        </div>
-
-        <!-- IP合照子流程 -->
-        <div id="other-sub-ip" style="display:none;margin-top:0.85rem;">
-          <div class="fixed-scene-note" id="ip-scene-note">
-            <strong>固定情境：</strong>銀杏森林一起散步 · 半身合照 · 保留原圖動作／構圖／衣服細節 · 不要濾鏡擺拍感
-          </div>
-          <div class="sub-label">選擇 IP 角色</div>
-          <div class="style-grid" id="ip-character-grid">
-            <div class="style-btn" data-ip="rock_ip" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/IP.png" alt="石人 IP">
-              <span class="name">石人 IP</span>
-              <span class="desc">館方 IP 角色</span>
-            </div>
-            <div class="style-btn" data-ip="catch_cat" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/catch_cat.png" alt="@CATch笑貓">
-              <span class="name">@CATch笑貓</span>
-              <span class="desc">笑貓角色</span>
-            </div>
-            <div class="style-btn" data-ip="ocat" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/ocat.png" alt="O-cat不理貓">
-              <span class="name">O-cat不理貓</span>
-              <span class="desc">不理貓角色</span>
-            </div>
-            <div class="style-btn" data-ip="fantasy_forest" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/fantasy_forest.png" alt="異想之森">
-              <span class="name">異想之森</span>
-              <span class="desc">異想之森角色</span>
-            </div>
-            <div class="style-btn" data-ip="coomi" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/coomi.png" alt="酷米原始人">
-              <span class="name">酷米原始人</span>
-              <span class="desc">酷米原始人角色</span>
-            </div>
-            <div class="style-btn" data-ip="pending" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/pending.png" alt="待測試02">
-              <span class="name">待測試02</span>
-              <span class="desc">待測試角色</span>
-            </div>
-            <div class="style-btn" data-ip="boba" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/boba.png" alt="波霸奶茶">
-              <span class="name">波霸奶茶</span>
-              <span class="desc">波霸奶茶角色</span>
-            </div>
-            <div class="style-btn" data-ip="leboo" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/leboo.png" alt="LEBOO">
-              <span class="name">LEBOO</span>
-              <span class="desc">LEBOO 角色</span>
-            </div>
-            <div class="style-btn" data-ip="zono" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/zono.png" alt="ZONO">
-              <span class="name">ZONO</span>
-              <span class="desc">ZONO 角色</span>
-            </div>
-            <div class="style-btn" data-ip="jujiao" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/jujiao.png" alt="橘焦玩鬧">
-              <span class="name">橘焦玩鬧</span>
-              <span class="desc">Ju Jiao 角色</span>
-            </div>
-            <div class="style-btn" data-ip="daily_art" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/daily_art.png" alt="畫說日常">
-              <span class="name">畫說日常</span>
-              <span class="desc">畫說日常角色</span>
-            </div>
-            <div class="style-btn" data-ip="fat_rabbit" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/fat_rabbit.png" alt="肥兔兔佩兔">
-              <span class="name">肥兔兔佩兔</span>
-              <span class="desc">肥兔兔佩兔角色</span>
-            </div>
-            <div class="style-btn" data-ip="yangpang" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/養胖夥伴.png" alt="養胖夥伴">
-              <span class="name">養胖夥伴</span>
-              <span class="desc">養胖夥伴角色</span>
-            </div>
-            <div class="style-btn" data-ip="watermelon" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/watermelon.png" alt="西瓜小精靈">
-              <span class="name">西瓜小精靈</span>
-              <span class="desc">青苔插畫角色</span>
-            </div>
-            <div class="style-btn" data-ip="banana_star" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/banana_star.png" alt="黃蕉星">
-              <span class="name">黃蕉星</span>
-              <span class="desc">黃蕉星角色</span>
-            </div>
-            <div class="style-btn" data-ip="ahmiaw" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/ahmiaw.png" alt="愛現貓貓">
-              <span class="name">愛現貓貓</span>
-              <span class="desc">AH!Miaw 角色</span>
-            </div>
-            <div class="style-btn" data-ip="mochi" onclick="selectIpCharacter(this)">
-              <img class="ip-thumb" src="IP/mochi.png" alt="只是一顆麻糬">
-              <span class="name">只是一顆麻糬</span>
-              <span class="desc">麻糬角色</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 風格轉換子流程 -->
-        <div id="other-sub-style" style="display:none;margin-top:0.85rem;">
-          <div class="sub-label">選擇風格</div>
-          <div class="style-grid">
-            <div class="style-btn" data-style="scribble" onclick="selectOtherStyle(this)">
-              <span class="emoji">✏️</span>
-              <span class="name">潦草速寫</span>
-              <span class="desc">原子筆塗鴉速寫感</span>
-            </div>
-            <div class="style-btn" data-style="ugly" onclick="selectOtherStyle(this)">
-              <span class="emoji">🖍️</span>
-              <span class="name">醜陋塗鴉</span>
-              <span class="desc">Threads 爆紅爛畫風</span>
-            </div>
-            <div class="style-btn" data-style="japan_illustration" onclick="selectOtherStyle(this)">
-              <span class="emoji">🎨</span>
-              <span class="name">手繪插畫</span>
-              <span class="desc">Threads 氛圍插畫風</span>
-            </div>
-            <div class="style-btn" data-style="ghibli" onclick="selectOtherStyle(this)">
-              <span class="emoji">🌿</span>
-              <span class="name">日系動畫</span>
-              <span class="desc">溫暖日系動畫感</span>
-            </div>
-            <div class="style-btn" data-style="japan_handdrawn" onclick="selectOtherStyle(this)">
-              <span class="emoji">🖍️</span>
-              <span class="name">日系手繪</span>
-              <span class="desc">相片紙童趣手繪</span>
-            </div>
-            <div class="style-btn" data-style="visual_poster" onclick="selectOtherStyle(this)">
-              <span class="emoji">🖼️</span>
-              <span class="name">視覺海報</span>
-              <span class="desc">流行視覺編輯藝術</span>
-            </div>
-          </div>
-
-          <div class="sub-label" style="margin-top:0.85rem;">選擇背景</div>
-          <div class="style-grid">
-            <div class="style-btn selected" data-bg="original" onclick="selectBackground(this)">
-              <span class="emoji">📷</span>
-              <span class="name">原本背景</span>
-              <span class="desc">保留拍攝時的背景</span>
-            </div>
-            <div class="style-btn" data-bg="garden" onclick="selectBackground(this)">
-              <span class="emoji">🌸</span>
-              <span class="name">夢幻花園</span>
-              <span class="desc">花海與柔和陽光</span>
-            </div>
-            <div class="style-btn" data-bg="night_city" onclick="selectBackground(this)">
-              <span class="emoji">🌃</span>
-              <span class="name">璀璨夜景</span>
-              <span class="desc">城市燈光與夜色</span>
-            </div>
-            <div class="style-btn" data-bg="forest" onclick="selectBackground(this)">
-              <span class="emoji">🌲</span>
-              <span class="name">魔幻森林</span>
-              <span class="desc">灑落光影的森林</span>
-            </div>
-            <div class="style-btn" data-bg="cafe" onclick="selectBackground(this)">
-              <span class="emoji">☕</span>
-              <span class="name">復古咖啡廳</span>
-              <span class="desc">溫暖木質調氛圍</span>
-            </div>
-            <div class="style-btn" data-bg="beach" onclick="selectBackground(this)">
-              <span class="emoji">🏖️</span>
-              <span class="name">海灘假期</span>
-              <span class="desc">藍天碧海度假感</span>
-            </div>
-            <div class="style-btn" data-bg="party" onclick="selectBackground(this)">
-              <span class="emoji">🎉</span>
-              <span class="name">繽紛派對</span>
-              <span class="desc">氣球與慶祝氛圍</span>
-            </div>
-            <div class="style-btn" data-bg="studio" onclick="selectBackground(this)">
-              <span class="emoji">🎞️</span>
-              <span class="name">極簡攝影棚</span>
-              <span class="desc">純色簡約背景</span>
-            </div>
-          </div>
-        </div>
+      <p class="fixed-scene-note" id="wizard-hint" style="margin-top:0;">選擇「經典」或「IP合照」</p>
+      <div id="wizard-body"></div>
+      <div class="wizard-nav">
+        <button type="button" class="btn-action" id="wizard-back" onclick="Wizard.wizardBack()">上一步</button>
+        <button type="button" class="btn-action primary" id="wizard-next" onclick="Wizard.wizardNext()">下一步</button>
       </div>
     </div>
 
-    <!-- Step 3: 選擇噴印商品 -->
-    <div class="section">
-      <div class="section-label">
-        <span class="step-num" id="step3-dot">3</span>選擇噴印商品
-      </div>
-      <div class="product-grid">
-        <div class="product-btn selected" data-product="photo" onclick="selectProduct(this)">
-          <span class="p-emoji">🖼️</span>
-          <span class="p-name">印相片</span>
+    <div class="left-footer">
+      <!-- Prompt 預覽 -->
+      <div class="prompt-preview-wrap">
+        <div class="prompt-preview-header">
+          <span class="prompt-preview-label">📋 完整提示詞預覽</span>
+          <button class="prompt-copy-btn" id="copy-btn" onclick="copyPrompt()">複製</button>
         </div>
-        <div class="product-btn" data-product="badge" onclick="selectProduct(this)">
-          <span class="p-emoji">📛</span>
-          <span class="p-name">胸章</span>
-        </div>
-        <div class="product-btn" data-product="mug" onclick="selectProduct(this)">
-          <span class="p-emoji">☕</span>
-          <span class="p-name">馬克杯</span>
-        </div>
+        <div id="prompt-preview-box" tabindex="0"></div>
       </div>
-      <div class="sub-label" style="margin-top:0.85rem;">選擇尺寸 / 構圖方式</div>
-      <div class="size-row" id="size-row"></div>
-      <div id="size-hint" style="margin-top:0.5rem;font-size:0.62rem;color:var(--muted);line-height:1.7;"></div>
-    </div>
 
-    <!-- Step 4: 模型 / 畫質對照 -->
-    <div class="section">
-      <div class="section-label">
-        <span class="step-num done" id="step4-dot">4</span>生成對照
-      </div>
-      <div class="sub-label">選擇模型</div>
-      <div class="option-row" id="model-row">
-        <button type="button" class="option-btn" data-model="gpt-image-2" onclick="selectModel(this)">
-          <span class="o-name">GPT Image 2</span>
-          <span class="o-desc">原本這版 · 較穩、較慢</span>
-        </button>
-        <button type="button" class="option-btn selected" data-model="gpt-image-2.5-flare" onclick="selectModel(this)">
-          <span class="o-name">2.5 Flare</span>
-          <span class="o-desc">建議對照 · 約快 50%</span>
-        </button>
-      </div>
-      <div class="sub-label" style="margin-top:0.85rem;">選擇畫質</div>
-      <div class="option-row" id="quality-row">
-        <button type="button" class="option-btn selected" data-quality="low" onclick="selectQuality(this)">
-          <span class="o-name">Low</span>
-          <span class="o-desc">約 15–25 秒 · 較省</span>
-        </button>
-        <button type="button" class="option-btn" data-quality="medium" onclick="selectQuality(this)">
-          <span class="o-name">Medium</span>
-          <span class="o-desc">約 35–80 秒 · 較細</span>
-        </button>
-      </div>
-      <div class="sub-label" style="margin-top:0.85rem;">一次生成張數</div>
-      <div class="option-row" id="count-row">
-        <button type="button" class="option-btn selected" data-count="1" onclick="selectCount(this)">
-          <span class="o-name">一張</span>
-          <span class="o-desc">單張結果</span>
-        </button>
-        <button type="button" class="option-btn" data-count="4" onclick="selectCount(this)">
-          <span class="o-name">四張</span>
-          <span class="o-desc">同一次請求回傳 4 張</span>
-        </button>
-      </div>
-      <div class="option-note" id="text-policy-note"></div>
-    </div>
+      <div id="error-msg"></div>
 
-    <!-- Prompt 預覽 -->
-    <div class="prompt-preview-wrap">
-      <div class="prompt-preview-header">
-        <span class="prompt-preview-label">📋 完整提示詞預覽</span>
-        <button class="prompt-copy-btn" id="copy-btn" onclick="copyPrompt()">複製</button>
+      <div class="generate-wrap">
+        <button id="generate-btn" onclick="generate()">
+          <div class="loading-bar" id="loading-bar"></div>
+          <span id="btn-text">🪄 開始魔法轉換！</span>
+        </button>
       </div>
-      <div id="prompt-preview-box" tabindex="0"></div>
-    </div>
-
-    <div id="error-msg"></div>
-
-    <div class="generate-wrap">
-      <button id="generate-btn" onclick="generate()">
-        <div class="loading-bar" id="loading-bar"></div>
-        <span id="btn-text">🪄 開始魔法轉換！</span>
-      </button>
     </div>
 
   </div>
@@ -1152,21 +936,23 @@ body::before {
     </div>
 
     <div id="result-area">
-      <div id="result-stage">
-        <div class="result-img-container">
-          <img id="result-img" src="" alt="轉換結果">
-          <span class="result-badge" id="style-badge">日系動畫</span>
-        </div>
+      <div class="result-img-container">
+        <img id="result-img" src="" alt="轉換結果">
+        <span class="result-badge" id="style-badge">日系動畫</span>
       </div>
       <div class="result-actions">
         <a id="dl-btn" class="btn-action" download="style_transfer.png">↓ 下載</a>
-        <button class="btn-action primary" id="again-btn" onclick="resetResult()">再轉一張</button>
+        <button class="btn-action primary" onclick="resetResult()">再轉一張</button>
         <span class="time-tag" id="gen-time-tag" title="從按下生成到完成的實際耗時">
           ⏱ <span class="time-val" id="gen-time-val">—</span>
         </span>
         <span class="cost-tag" id="cost-tag" title="依 API 回傳的實際 token 用量換算；若無 usage 資料則顯示估算值">
-          🪙 <span id="cost-model"></span> · 約 <span class="cost-val" id="cost-val"></span> / <span id="cost-unit">張</span>
+          🪙 <span id="cost-model"></span> · 約 <span class="cost-val" id="cost-val"></span> / 張
         </span>
+      </div>
+      <div style="width:100%;margin-top:0.4rem;">
+        <div class="sub-label">生成後套用外框（PNG）· frame1 建議直式 3:4／2:3，圖會縮進窗內避免被框邊擋住</div>
+        <div class="result-actions" id="frame-choices"></div>
       </div>
     </div>
 
@@ -1174,6 +960,9 @@ body::before {
 </div>
 
 <script src="IP/ip-data.js"></script>
+<script src="img/ChatGPT/ref-data.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/wizard.js"></script>
 <script>
 const STYLE_MAP = {
 
@@ -1465,7 +1254,7 @@ Blend the new background seamlessly with the chosen art style, matching its ligh
 
 /**
  * 「其他風格 → IP合照」可選角色。
- * 銀杏合照合成圖：左＝真人、右＝IP。考古館與 IP 合照仍是左＝IP、右＝真人。
+ * 合成圖：第一張＝IP、第二張＝使用者原圖。
  * @type {Record<string, { name: string, src: string }>}
  */
 const IP_CHARACTERS = {
@@ -1481,7 +1270,6 @@ const IP_CHARACTERS = {
   jujiao: { name: "橘焦玩鬧", src: "IP/jujiao.png" },
   daily_art: { name: "畫說日常", src: "IP/daily_art.png" },
   fat_rabbit: { name: "肥兔兔佩兔", src: "IP/fat_rabbit.png" },
-  yangpang: { name: "養胖夥伴", src: "IP/養胖夥伴.png" },
   watermelon: { name: "西瓜小精靈", src: "IP/watermelon.png" },
   banana_star: { name: "黃蕉星", src: "IP/banana_star.png" },
   ahmiaw: { name: "愛現貓貓", src: "IP/ahmiaw.png" },
@@ -1489,53 +1277,19 @@ const IP_CHARACTERS = {
 };
 
 /**
- * 銀杏 IP 合照提示詞（一般角色）。
+ * 銀杏 IP 合照提示詞（所有角色共用，只保留簡單句）。
  */
 const GINKGO_IP_PROMPT = `銀杏主題，搭配IP合照，不要有濾鏡擺拍的感覺 ，保留原圖的動作、構圖和衣服細節，背景在銀杏森林裡一起散步，人物角色半身照，手指不要變形，保持臉型`;
 
 /**
- * 容易變形的 IP：只擺拍，不互動，把原圖貼在人物旁邊。
- * @type {Set<string>}
- */
-const IP_PASTE_ONLY_KEYS = new Set(["catch_cat", "yangpang", "watermelon"]);
-
-/**
- * 銀杏 IP 擺拍提示詞（catch_cat、養胖夥伴、watermelon）。
- * 不與真人互動，只把 IP 原圖附在旁邊。
- */
-const GINKGO_IP_PASTE_PROMPT = `Composite these two reference images into one natural posed photograph.
-The left image contains the real people (one person or a group); the right image is the IP character reference.
-Place the IP and every real person in the same frame inside a lush golden ginkgo forest — a still photo pose together, NOT walking, NOT strolling, and NO interaction.
-
-CRITICAL — keep every real person (highest priority):
-The left photo may show two or more people. Keep ALL of them. Output the same number of real people, in the same left-to-right order and relative positions.
-Do NOT drop, crop out, merge, hide, or replace anyone. Do NOT leave only one person.
-
-CRITICAL — paste the IP original beside the group:
-Do NOT make the IP interact with any real person. No holding hands, hugging, leaning, touching, gesturing toward them, or looking at them.
-Simply attach the ORIGINAL IP picture next to the group, like a faithful overlay / cutout paste.
-Keep the IP's EXACT original look from the right reference: silhouette, pose, expression, colors, costume, props, and every signature detail — zero redesign.
-Do NOT re-pose, restyle, recolor, or alter the IP in any way.
-
-Real people: for each person in the left photo, preserve EXACTLY the same body shape, proportions, pose, facial expression, face, hairstyle, and identity.
-Clothing lock: keep the EXACT outfit visible in the left photo — same garments, colors, patterns, layers, and accessories. Do NOT redesign, restyle, recolor, or replace any clothes.
-
-Framing: HALF-BODY only, about head to waist. Do NOT output a full-body photo. Do NOT show legs, feet, or shoes, and do NOT invent a lower body or a new outfit to fill a full-length frame.
-Keep every person in frame. Do not zoom in on a single person. Show the complete original IP design beside the group. Do not cover or alter any subject. Keep realistic scale.
-
-Scene: lush golden ginkgo forest in peak autumn; thick carpet of fallen bright yellow ginkgo leaves; tall ginkgo trees with vibrant yellow foliage; soft warm overcast daylight; a few yellow leaves drifting in the air.
-Match lighting, shadows, perspective, color temperature, and photographic quality so both belong in the same scene.`;
-
-/**
  * 依所選 IP 回傳銀杏合照提示詞。
- * 容易變形的角色改走擺拍貼圖提示詞。
  * @returns {string}
  */
 function getGinkgoIpPrompt() {
   if (!selectedIpCharacter || !IP_CHARACTERS[selectedIpCharacter]) {
     return "（請先選擇 IP 角色）";
   }
-  return IP_PASTE_ONLY_KEYS.has(selectedIpCharacter) ? GINKGO_IP_PASTE_PROMPT : GINKGO_IP_PROMPT;
+  return GINKGO_IP_PROMPT;
 }
 
 /**
@@ -1546,12 +1300,9 @@ function syncIpSceneNote() {
   const note = document.getElementById("ip-scene-note");
   if (!note) return;
   const ip = IP_CHARACTERS[selectedIpCharacter];
-  const pasteOnly = ip && IP_PASTE_ONLY_KEYS.has(selectedIpCharacter);
-  note.innerHTML = pasteOnly
-    ? `<strong>固定情境：</strong>銀杏森林擺拍 · ${ip.name} · 半身照 · 保留原穿搭與所有人物 · 不互動 · IP 原圖貼在旁邊`
-    : ip
-      ? `<strong>固定情境：</strong>銀杏森林一起散步 · ${ip.name} · 半身合照 · 保留原圖動作／構圖／衣服細節`
-      : "<strong>固定情境：</strong>銀杏森林一起散步 · 半身合照 · 保留原圖動作／構圖／衣服細節 · 不要濾鏡擺拍感";
+  note.innerHTML = ip
+    ? `<strong>固定情境：</strong>銀杏森林一起散步 · ${ip.name} · 半身合照 · 保留原圖動作／構圖／衣服細節`
+    : "<strong>固定情境：</strong>銀杏森林一起散步 · 半身合照 · 保留原圖動作／構圖／衣服細節 · 不要濾鏡擺拍感";
 }
 
 const MSGS = ["正在施魔法...", "融合風格中...", "手繪細節中...", "快好了..."];
@@ -1646,12 +1397,6 @@ const PRODUCT_SIZES = {
 /** 預設 low：目標壓到約 30 秒；可切回 medium 對照畫質。 */
 let selectedQuality = "low";
 
-/** 一次請求要生成的張數：1 或 4。 */
-let selectedCount = 1;
-
-/** 多張結果時，目前選來下載的圖片位址。 */
-let selectedResultUrl = "";
-
 const QUALITY_TIP = {
   low: "Low 畫質通常需要 15–25 秒",
   medium: "Medium 畫質通常需要 35–80 秒",
@@ -1669,17 +1414,10 @@ function getSizeShapeClass(ratio) {
   return ratio === "1:1" ? "square" : "wide";
 }
 
-/**
- * 估算單次請求費用。多張時依張數加總。
- * @param {{ratio?: string}|null|undefined} sizeEntry
- * @param {number} [count]
- * @returns {string}
- */
-function getEstimatedCostText(sizeEntry, count) {
+function getEstimatedCostText(sizeEntry) {
   const shape = getSizeShapeClass(sizeEntry ? sizeEntry.ratio : "1:1");
   const usd = (PRICE_ESTIMATE_USD[selectedQuality] || {})[shape];
-  const n = count === 4 ? 4 : 1;
-  return usd != null ? `$${(usd * n).toFixed(3)} USD` : "—";
+  return usd != null ? `$${usd.toFixed(3)} USD` : "—";
 }
 
 /**
@@ -1717,28 +1455,6 @@ function selectQuality(el) {
   selectedQuality = el.dataset.quality;
   sessionStorage.setItem("openai_image_quality", selectedQuality);
   syncGenerationSettingsUi();
-}
-
-/**
- * 切換一次生成的張數（1 或 4）。
- * @param {HTMLElement} el
- * @returns {void}
- */
-function selectCount(el) {
-  document.querySelectorAll("#count-row .option-btn").forEach((btn) => btn.classList.remove("selected"));
-  el.classList.add("selected");
-  selectedCount = el.dataset.count === "4" ? 4 : 1;
-  sessionStorage.setItem("openai_image_count", String(selectedCount));
-  syncCountLabel();
-}
-
-/**
- * 依張數更新「再轉」按鈕文字。
- * @returns {void}
- */
-function syncCountLabel() {
-  const again = document.getElementById("again-btn");
-  if (again) again.textContent = selectedCount === 4 ? "再轉四張" : "再轉一張";
 }
 
 function switchTab(tab) {
@@ -1945,9 +1661,25 @@ function buildTextPolicyPrompt() {
 function syncTextPolicyNote() {
   const note = document.getElementById("text-policy-note");
   if (!note) return;
-  note.textContent = allowsGeneratedText()
-    ? "此風格例外：角色衣服、掛牌、帽子與身上物件不准有字；畫面其他地方的 AI 亂畫字可以留。"
-    : "除「醜陋塗鴉」外會清掉所有文字。所有風格的角色穿搭、掛牌、帽子上都不會有字。";
+  const route = typeof Wizard !== "undefined" && Wizard.state ? Wizard.state.route : "";
+  const styleId = typeof Wizard !== "undefined" && Wizard.state ? Wizard.state.styleId : "";
+  if (route === "ip") {
+    note.textContent = "IP 合照使用簡潔提示詞；背景可選「無」。";
+    return;
+  }
+  const cat = CatalogStore.loadCatalog();
+  const wizCh =
+    route === "classic" && typeof Wizard !== "undefined" && Wizard.state
+      ? (cat.characters || []).find((x) => x.id === Wizard.state.characterId)
+      : null;
+  const st =
+    route === "classic" && styleId
+      ? CatalogStore.getCharacterStyles(wizCh).find((x) => x.id === styleId)
+      : null;
+  note.textContent =
+    st && st.allowText
+      ? "此風格例外：角色衣服、掛牌、帽子與身上物件不准有字；畫面其他地方的 AI 亂畫字可以留。"
+      : "除「醜陋塗鴉」外會清掉所有文字。所有風格的角色穿搭、掛牌、帽子上都不會有字。";
 }
 
 /**
@@ -2034,15 +1766,28 @@ function loadImageFromObjectUrl(url) {
 }
 
 /**
+ * 查預載 data URL（IP / 玉器參考圖）。
+ * @param {string} src
+ * @returns {string|null}
+ */
+function getEmbeddedAssetDataUrl(src) {
+  if (typeof window.IP_DATA_URLS === "object" && window.IP_DATA_URLS && window.IP_DATA_URLS[src]) {
+    return window.IP_DATA_URLS[src];
+  }
+  if (typeof window.REF_DATA_URLS === "object" && window.REF_DATA_URLS && window.REF_DATA_URLS[src]) {
+    return window.REF_DATA_URLS[src];
+  }
+  return null;
+}
+
+/**
  * 從相對路徑載入圖片為 HTMLImageElement。
  * 優先使用預載 data URL，否則 fetch 成 blob，避免 file:// 污染 canvas。
  * @param {string} src
  * @returns {Promise<HTMLImageElement>}
  */
 async function loadImageFromUrl(src) {
-  const embedded = typeof window.IP_DATA_URLS === "object" && window.IP_DATA_URLS
-    ? window.IP_DATA_URLS[src]
-    : null;
+  const embedded = getEmbeddedAssetDataUrl(src);
   if (embedded) {
     return loadImageFromObjectUrl(embedded);
   }
@@ -2059,7 +1804,12 @@ async function loadImageFromUrl(src) {
       URL.revokeObjectURL(objUrl);
     }
   } catch (err) {
-    throw new Error(`無法載入 IP 圖片（${src}），請確認圖檔已放於同資料夾`);
+    // 最後嘗試直接用相對路徑（部分本機伺服器可用；file:// 常失敗）
+    try {
+      return await loadImageFromObjectUrl(src);
+    } catch (_) {
+      throw new Error(`無法載入參考圖片（${src}），請確認圖檔存在，或重新產生 img/ref-data.js`);
+    }
   }
 }
 
@@ -2218,18 +1968,13 @@ function setLoading(on) {
  * @param {string} apiKey
  * @param {File} imageFile
  * @param {string} prompt
- * @param {string} [size]
- * @param {string} [quality]
- * @param {number} [count] 一次生成張數，1 或 4
- * @returns {Promise<{dataUrls: string[], usage: object|null}>}
+ * @returns {Promise<string>}
  */
-async function openaiImagesEdit(apiKey, imageFile, prompt, size, quality, count) {
-  const n = count === 4 ? 4 : 1;
+async function openaiImagesEdit(apiKey, imageFile, prompt, size, quality) {
   const formData = new FormData();
   formData.append("model", selectedModel);
   formData.append("prompt", prompt);
   formData.append("image", imageFile, imageFile.name || "upload.png");
-  formData.append("n", String(n));
   if (size) formData.append("size", size);
   if (quality) formData.append("quality", quality);
 
@@ -2247,17 +1992,16 @@ async function openaiImagesEdit(apiKey, imageFile, prompt, size, quality, count)
     throw new Error(msg || "HTTP " + res.status);
   }
 
-  const dataUrls = (Array.isArray(data?.data) ? data.data : [])
-    .map((item) => {
-      if (item?.b64_json) return "data:image/png;base64," + item.b64_json;
-      if (item?.url) return item.url;
-      return "";
-    })
-    .filter(Boolean);
-  if (!dataUrls.length) {
+  const first = data?.data?.[0];
+  let dataUrl;
+  if (first?.b64_json) {
+    dataUrl = "data:image/png;base64," + first.b64_json;
+  } else if (first?.url) {
+    dataUrl = first.url;
+  } else {
     throw new Error("API 未回傳圖片（無 b64_json / url）");
   }
-  return { dataUrls, usage: data?.usage || null };
+  return { dataUrl, usage: data?.usage || null };
 }
 
 // 官方 token 單價（USD / token）：text input $5/1M、image input $8/1M、output $30/1M
@@ -2281,31 +2025,26 @@ function computeActualCostUsd(usage) {
 }
 
 /**
- * 將 IP 圖與使用者照片並排合成後，縮放為可上傳 PNG。
- * 銀杏合照：左＝真人、右＝IP。考古館與 IP 合照維持左＝IP、右＝真人。
- * @param {string} ipSrc IP 圖片相對路徑
- * @param {boolean} [personOnLeft] 為 true 時左放真人、右放 IP
+ * 將參考圖（左）與使用者照片（右）並排合成後，縮放為可上傳 PNG。
+ * 用於 IP 合照、玉器參考等「先拼圖再 edit」。
+ * @param {string} refSrc 參考圖相對路徑
  * @returns {Promise<File>}
  */
-async function composeUserWithIp(ipSrc, personOnLeft) {
+async function composeUserWithReference(refSrc) {
   const userImg = await loadImageFromFile(currentFile);
-  const ipImg = await loadImageFromUrl(ipSrc);
+  const refImg = await loadImageFromUrl(refSrc);
 
-  const targetH = Math.max(userImg.naturalHeight, ipImg.naturalHeight, 600);
+  const targetH = Math.max(userImg.naturalHeight, refImg.naturalHeight, 600);
   const wUser = Math.round(userImg.naturalWidth * (targetH / userImg.naturalHeight));
-  const wIp = Math.round(ipImg.naturalWidth * (targetH / ipImg.naturalHeight));
+  const wRef = Math.round(refImg.naturalWidth * (targetH / refImg.naturalHeight));
 
   const canvas = document.createElement("canvas");
-  canvas.width = wIp + wUser;
+  canvas.width = wRef + wUser;
   canvas.height = targetH;
   const ctx = canvas.getContext("2d");
-  if (personOnLeft) {
-    ctx.drawImage(userImg, 0, 0, wUser, targetH);
-    ctx.drawImage(ipImg, wUser, 0, wIp, targetH);
-  } else {
-    ctx.drawImage(ipImg, 0, 0, wIp, targetH);
-    ctx.drawImage(userImg, wIp, 0, wUser, targetH);
-  }
+  // 左：參考圖；右：使用者原圖
+  ctx.drawImage(refImg, 0, 0, wRef, targetH);
+  ctx.drawImage(userImg, wRef, 0, wUser, targetH);
 
   const blob = await new Promise((res, rej) =>
     canvas.toBlob((b) => (b ? res(b) : rej(new Error("合成圖片失敗"))), "image/png")
@@ -2313,6 +2052,25 @@ async function composeUserWithIp(ipSrc, personOnLeft) {
   const compositeFile = new File([blob], "composite.png", { type: "image/png" });
   return resizeImageForUploadAsPng(compositeFile, MAX_IMAGE_LONG_EDGE * 2);
 }
+
+/**
+ * IP 合照拼圖（同 composeUserWithReference）。
+ * @param {string} ipSrc
+ * @returns {Promise<File>}
+ */
+async function composeUserWithIp(ipSrc) {
+  return composeUserWithReference(ipSrc);
+}
+
+/** 玉器／文物參考拼圖時附加的版面說明（左參考、右人物）。 */
+const CERAMIC_COMPOSITE_PROMPT =
+  "\nCRITICAL COMPOSITE LAYOUT:\n" +
+  "- The input is a side-by-side photo: LEFT = artifact reference (ground truth), RIGHT = person photo.\n" +
+  "- Output ONE natural scene only (no split screen, no collage borders).\n" +
+  "- Keep the person's face and identity from the RIGHT panel.\n" +
+  "- The artifact in the scene MUST be the SAME object as the LEFT panel: same silhouette, size proportions, color, metal/stone/ceramic material, surface patterns and details.\n" +
+  "- FORBIDDEN: inventing a different prop (e.g. axe, knife, generic tool, random pottery) instead of the LEFT artifact.\n" +
+  "- The LEFT artifact must be clearly visible and recognizable in the final image (held, worn, placed next to the person, or freshly excavated—per the role interaction).\n";
 
 async function generate() {
   hideError();
@@ -2374,7 +2132,7 @@ async function generate() {
       }
       prompt = buildFullPrompt();
       displayName = `銀杏IP合照 · ${ip.name}`;
-      fileToSend = await composeUserWithIp(ip.src, true);
+      fileToSend = await composeUserWithIp(ip.src);
     } else {
       if (!selectedStyle || !STYLE_MAP[selectedStyle]) {
         showError("請先選擇一個風格");
@@ -2388,20 +2146,13 @@ async function generate() {
     }
 
     const sizeEntry = getCurrentSizeEntry();
-    const { dataUrls, usage } = await openaiImagesEdit(
-      apiKey,
-      fileToSend,
-      prompt,
-      sizeEntry?.apiSize,
-      selectedQuality,
-      selectedCount
-    );
+    const { dataUrl, usage } = await openaiImagesEdit(apiKey, fileToSend, prompt, sizeEntry?.apiSize, selectedQuality);
     const actualCost = computeActualCostUsd(usage);
     const costText = actualCost != null
       ? `$${actualCost.toFixed(4)} USD`
-      : getEstimatedCostText(sizeEntry, dataUrls.length) + '（估算）';
+      : getEstimatedCostText(sizeEntry) + '（估算）';
     const elapsedMs = performance.now() - genStartedAt;
-    showResult(dataUrls, displayName + ' · ' + getSizeLabel(), costText, elapsedMs);
+    showResult(dataUrl, displayName + ' · ' + getSizeLabel(), costText, elapsedMs);
   } catch (e) {
     showError("錯誤：" + (e && e.message ? e.message : String(e)));
     document.getElementById("empty-state").style.display = "flex";
@@ -2425,104 +2176,16 @@ function formatElapsedTime(ms) {
 }
 
 /**
- * 把某一張結果設為下載目標。
- * @param {HTMLElement} card
- * @param {string} url
- * @param {number} index 從 1 開始
- * @returns {void}
- */
-function selectResultCard(card, url, index) {
-  selectedResultUrl = url;
-  document.querySelectorAll(".result-card").forEach((el) => el.classList.remove("selected"));
-  card.classList.add("selected");
-  const dl = document.getElementById("dl-btn");
-  dl.href = url;
-  dl.download = "style_transfer_" + index + ".png";
-}
-
-/**
- * 建立單張結果畫面。
- * @param {string} url
- * @param {string} displayName
- * @returns {HTMLElement}
- */
-function buildSingleResult(url, displayName) {
-  const wrap = document.createElement("div");
-  wrap.className = "result-img-container";
-  const img = document.createElement("img");
-  img.id = "result-img";
-  img.alt = "轉換結果";
-  img.src = url;
-  const badge = document.createElement("span");
-  badge.className = "result-badge";
-  badge.id = "style-badge";
-  badge.textContent = displayName || "轉換完成";
-  wrap.append(img, badge);
-  return wrap;
-}
-
-/**
- * 建立多張結果格子，點選後切換下載目標。
- * @param {string[]} urls
- * @param {string} displayName
- * @returns {HTMLElement}
- */
-function buildResultGrid(urls, displayName) {
-  const grid = document.createElement("div");
-  grid.className = "result-grid";
-  const badge = document.createElement("span");
-  badge.className = "result-badge";
-  badge.id = "style-badge";
-  badge.textContent = displayName || "轉換完成";
-  badge.style.position = "static";
-  badge.style.marginBottom = "8px";
-  grid.style.display = "grid";
-  const holder = document.createElement("div");
-  holder.style.display = "flex";
-  holder.style.flexDirection = "column";
-  holder.style.alignItems = "flex-start";
-  holder.style.gap = "8px";
-  holder.style.width = "min(100%, 760px)";
-  urls.forEach((url, i) => {
-    const index = i + 1;
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = "result-card" + (i === 0 ? " selected" : "");
-    const img = document.createElement("img");
-    img.alt = "轉換結果 " + index;
-    img.src = url;
-    const label = document.createElement("span");
-    label.className = "card-index";
-    label.textContent = String(index);
-    card.append(img, label);
-    card.addEventListener("click", () => selectResultCard(card, url, index));
-    grid.appendChild(card);
-  });
-  holder.append(badge, grid);
-  return holder;
-}
-
-/**
- * 顯示結果圖；多張時以格子呈現，下載按鈕對應目前選取的那張。
- * @param {string|string[]} dataUrlOrList
+ * 顯示結果圖；若為遠端 URL 則下載連結沿用該 URL。
+ * @param {string} dataUrlOrHttp
  * @param {string} [displayName]
  * @param {string} [costText]
  * @param {number} [elapsedMs]
  */
-function showResult(dataUrlOrList, displayName, costText, elapsedMs) {
-  const urls = (Array.isArray(dataUrlOrList) ? dataUrlOrList : [dataUrlOrList]).filter(Boolean);
-  const stage = document.getElementById("result-stage");
-  const area = document.getElementById("result-area");
-  area.style.justifyContent = urls.length > 1 ? "flex-start" : "center";
-  stage.replaceChildren(urls.length > 1
-    ? buildResultGrid(urls, displayName)
-    : buildSingleResult(urls[0], displayName));
-  selectedResultUrl = urls[0] || "";
-  const dl = document.getElementById("dl-btn");
-  dl.href = selectedResultUrl;
-  dl.download = urls.length > 1 ? "style_transfer_1.png" : "style_transfer.png";
-  const unit = document.getElementById("cost-unit");
-  if (unit) unit.textContent = urls.length > 1 ? urls.length + " 張" : "張";
+function showResult(dataUrlOrHttp, displayName, costText, elapsedMs) {
+  document.getElementById("result-img").src = dataUrlOrHttp;
+  document.getElementById("dl-btn").href = dataUrlOrHttp;
+  document.getElementById("style-badge").textContent = displayName || "轉換完成";
   document.getElementById("cost-model").textContent = selectedModel + " · " + selectedQuality;
   document.getElementById("cost-val").textContent = costText || "—";
   document.getElementById("gen-time-val").textContent = formatElapsedTime(elapsedMs);
@@ -2554,19 +2217,149 @@ function restoreGenerationSettings() {
       btn.classList.toggle("selected", btn.dataset.quality === selectedQuality);
     });
   }
-  const savedCount = sessionStorage.getItem("openai_image_count");
-  if (savedCount === "1" || savedCount === "4") {
-    selectedCount = Number(savedCount);
-    document.querySelectorAll("#count-row .option-btn").forEach((btn) => {
-      btn.classList.toggle("selected", btn.dataset.count === savedCount);
-    });
-  }
-  syncCountLabel();
   syncGenerationSettingsUi();
 }
 
+
+/* ===== Wizard / Catalog overrides ===== */
+function getBasePrompt() {
+  return Wizard.buildWizardPrompt();
+}
+
+function buildFullPrompt() {
+  // IP 路線維持簡單提示；經典路線已在 wizard 內組好去字與尺寸
+  return Wizard.buildWizardPrompt();
+}
+
+function getCurrentSizeEntry() {
+  const out = Wizard.getSelectedOutput();
+  if (!out) return null;
+  return {
+    key: out.id,
+    label: out.name,
+    ratio: out.ratio,
+    apiSize: out.apiSize,
+    promptSuffix: out.promptSuffix || "",
+  };
+}
+
+function getSizeLabel() {
+  const s = getCurrentSizeEntry();
+  return s ? `${s.label}（${s.ratio}）` : "";
+}
+
+function getEstimatedCostText(sizeEntry) {
+  const shape = getSizeShapeClass(sizeEntry ? sizeEntry.ratio : "1:1");
+  const usd = (PRICE_ESTIMATE_USD[selectedQuality] || {})[shape];
+  return usd != null ? `$${usd.toFixed(3)} USD` : "—";
+}
+
+const _origGenerate = typeof generate === "function" ? generate : null;
+
+async function generate() {
+  hideError();
+  if (!currentFile) {
+    showError("請先上傳一張圖片");
+    return;
+  }
+  const apiKey = document.getElementById("api-key").value.trim();
+  if (!apiKey) {
+    showError("請輸入 OpenAI API Key");
+    return;
+  }
+  if (!Wizard.validateBeforeGenerate()) return;
+
+  setLoading(true);
+  document.getElementById("result-area").style.display = "none";
+  const genStartedAt = performance.now();
+
+  try {
+    const prompt = buildFullPrompt();
+    const displayName = Wizard.buildDisplayName();
+    let fileToSend;
+    if (Wizard.state.route === "ip") {
+      const ip = Wizard.getSelectedIp();
+      if (!ip) throw new Error("找不到 IP");
+      fileToSend = await composeUserWithReference(ip.src);
+    } else if (
+      Wizard.state.route === "classic" &&
+      Wizard.usesCeramicComposite &&
+      Wizard.usesCeramicComposite()
+    ) {
+      const ce = Wizard.getSelectedCeramic();
+      if (!ce || !ce.src) throw new Error("找不到玉器參考圖");
+      fileToSend = await composeUserWithReference(ce.src);
+    } else {
+      fileToSend = await resizeImageForUploadAsPng(currentFile, MAX_IMAGE_LONG_EDGE);
+    }
+    const sizeEntry = getCurrentSizeEntry();
+    const { dataUrl, usage } = await openaiImagesEdit(
+      apiKey,
+      fileToSend,
+      prompt,
+      sizeEntry && sizeEntry.apiSize,
+      selectedQuality
+    );
+    const actualCost = computeActualCostUsd(usage);
+    const costText =
+      actualCost != null
+        ? `$${actualCost.toFixed(4)} USD`
+        : getEstimatedCostText(sizeEntry) + "（估算）";
+    const elapsedMs = performance.now() - genStartedAt;
+    showResult(
+      dataUrl,
+      displayName + (getSizeLabel() ? " · " + getSizeLabel() : ""),
+      costText,
+      elapsedMs
+    );
+    Wizard.setRawResult(dataUrl);
+  } catch (e) {
+    showError("錯誤：" + (e && e.message ? e.message : String(e)));
+    document.getElementById("empty-state").style.display = "flex";
+  } finally {
+    setLoading(false);
+  }
+}
+
+function resetResult() {
+  document.getElementById("result-area").style.display = "none";
+  document.getElementById("empty-state").style.display = "flex";
+  Wizard.setRawResult("");
+}
+
+// 初始化精靈（覆蓋舊 renderSizes 啟動）
+try {
+  Wizard.renderWizard();
+  Wizard.renderFrameChoices();
+} catch (e) {
+  console.error(e);
+}
+
+
+/**
+ * 右上角生成設定 popover。
+ * @returns {void}
+ */
+function initSettingsPopover() {
+  const btn = document.getElementById("settings-btn");
+  const pop = document.getElementById("settings-popover");
+  if (!btn || !pop) return;
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = !pop.classList.contains("show");
+    pop.classList.toggle("show", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", (e) => {
+    if (!pop.classList.contains("show")) return;
+    if (pop.contains(e.target) || btn.contains(e.target)) return;
+    pop.classList.remove("show");
+    btn.setAttribute("aria-expanded", "false");
+  });
+}
+
 // 初始化
-renderSizes();
+initSettingsPopover();
 updatePromptPreview();
 restoreGenerationSettings();
 

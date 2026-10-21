@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>風格魔法師 · 後台</title>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0e17; --surface: #181724; --surface2: #211f32; --border: rgba(255,255,255,.1);
+  --text: #f5f3ff; --muted: #8b89a8; --c1: #ff6b6b; --c2: #4ecdc4; --c3: #ffe66d; --c4: #a78bfa;
+  --font: 'M PLUS Rounded 1c', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+.top { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); background: rgba(15,14,23,.9); position: sticky; top: 0; z-index: 5; }
+.top h1 { font-size: 1.1rem; font-weight: 800; }
+.top a { color: var(--c2); text-decoration: none; font-weight: 700; font-size: .85rem; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 1.2rem; }
+.hint { font-size: .72rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.7; }
+
+.route-label { font-size: .72rem; font-weight: 800; color: var(--muted); letter-spacing: .06em; margin-bottom: .55rem; }
+.route-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.1rem; }
+@media (max-width: 640px) { .route-grid { grid-template-columns: 1fr; } }
+.route-card {
+  text-align: left; cursor: pointer; font-family: var(--font);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 1rem 1.1rem; color: var(--text); transition: border-color .15s, transform .15s;
+}
+.route-card:hover { border-color: rgba(167,139,250,.45); transform: translateY(-1px); }
+.route-card.active { border-color: transparent; background: linear-gradient(135deg, rgba(78,205,196,.18), rgba(167,139,250,.16)); box-shadow: inset 0 0 0 1px rgba(78,205,196,.35); }
+.route-card .emoji { font-size: 1.4rem; display: block; margin-bottom: .35rem; }
+.route-card .name { font-size: 1.05rem; font-weight: 800; margin-bottom: .25rem; }
+.route-card .desc { font-size: .72rem; color: var(--muted); line-height: 1.55; }
+.route-card .flow { margin-top: .55rem; font-size: .68rem; font-weight: 700; color: var(--c3); }
+
+.panel { display: none; }
+.panel.show { display: block; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: .75rem; }
+.panel-head h2 { font-size: .95rem; font-weight: 800; }
+.panel-head .sub { font-size: .72rem; color: var(--muted); }
+
+.mid-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.mid-card {
+  text-align: left; cursor: pointer; font-family: var(--font);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px 14px; color: var(--text); position: relative;
+}
+.mid-card:hover { border-color: rgba(78,205,196,.4); }
+.mid-card.active { border-color: transparent; box-shadow: inset 0 0 0 1px rgba(78,205,196,.5); background: rgba(78,205,196,.1); }
+.mid-card.off { opacity: .55; }
+.mid-card .emoji { font-size: 1.35rem; }
+.mid-card .name { font-weight: 800; font-size: .92rem; margin: .25rem 0 .15rem; }
+.mid-card .desc { font-size: .68rem; color: var(--muted); line-height: 1.45; min-height: 2.1em; }
+.mid-card .mid-actions { display: flex; gap: 6px; margin-top: .65rem; }
+.mid-card .mid-actions .btn { padding: 5px 10px; font-size: .68rem; }
+
+.sub-wrap { display: none; margin-top: .5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.sub-wrap.show { display: block; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+.tab { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 8px 14px; cursor: pointer; font-weight: 800; font-size: .78rem; font-family: var(--font); }
+.tab.active.classic { color: #0f1e1d; background: linear-gradient(135deg, var(--c2), #2bb5ab); border-color: transparent; }
+.tab.active.ip { color: #1a1428; background: linear-gradient(135deg, var(--c4), #7c5cbf); border-color: transparent; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+.btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 800; font-size: .78rem; font-family: var(--font); }
+.btn.primary { background: linear-gradient(135deg, var(--c1), #ff8e53); border-color: transparent; }
+.btn.danger { border-color: rgba(255,107,107,.5); color: #ff9a9a; }
+.list { display: grid; gap: 10px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: start; }
+.card img, .card .ph { width: 64px; height: 64px; object-fit: contain; border-radius: 10px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+.card h3 { font-size: .92rem; margin-bottom: 4px; }
+.card p { font-size: .72rem; color: var(--muted); line-height: 1.5; word-break: break-all; }
+.card .meta { font-size: .68rem; color: var(--c3); margin-top: 4px; font-weight: 700; }
+.actions { display: flex; flex-direction: column; gap: 6px; }
+.badge { display: inline-block; font-size: .65rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.badge.on { background: rgba(78,205,196,.15); color: var(--c2); }
+.badge.off { background: rgba(255,107,107,.12); color: #ff9a9a; }
+.badge.shared { background: rgba(167,139,250,.15); color: var(--c4); margin-left: 4px; }
+.preview-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: .75rem; color: var(--muted); line-height: 1.65; white-space: pre-wrap; margin-bottom: 1rem; }
+.preview-box strong { color: var(--c3); display: block; margin-bottom: .35rem; font-size: .72rem; }
+.empty-pick { padding: 2.2rem 1rem; text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 16px; font-size: .85rem; line-height: 1.7; }
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 20; align-items: center; justify-content: center; padding: 1rem; }
+.modal-bg.show { display: flex; }
+.modal { width: min(560px, 100%); background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.1rem; max-height: 90vh; overflow: auto; }
+.modal h2 { font-size: 1rem; margin-bottom: .8rem; }
+.field { margin-bottom: .7rem; }
+.field label { display: block; font-size: .72rem; color: var(--muted); font-weight: 800; margin-bottom: 4px; }
+.field input, .field textarea, .field select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); padding: 9px 11px; font-family: var(--font); font-size: .82rem; }
+.field textarea { min-height: 110px; resize: vertical; }
+.row { display: flex; gap: 8px; justify-content: flex-end; margin-top: .8rem; }
+.global-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>⚙ 風格魔法師 · 後台</h1>
+  <a href="ChatGPT.html">← 回前台</a>
+</div>
+<div class="wrap">
+  <p class="hint">資料在 localStorage（v3 預設含陶偶／人面／大碗／甕等）。<strong>風格＝各角色獨立</strong>。新增<strong>風格</strong>或<strong>玉器</strong>時可從下拉選預設自動填入。若清單缺新項目，按「還原預設」。</p>
+
+  <div class="global-tools">
+    <button class="btn" id="btn-export">匯出 JSON</button>
+    <button class="btn" id="btn-import">匯入 JSON</button>
+    <button class="btn danger" id="btn-reset">還原預設</button>
+    <input type="file" id="import-file" accept="application/json,.json" hidden>
+  </div>
+
+  <div class="route-label">① 先選大項</div>
+  <div class="route-grid" id="route-grid">
+    <button type="button" class="route-card" data-route="classic">
+      <span class="emoji">🏛️</span>
+      <div class="name">經典</div>
+      <div class="desc">中項目＝角色；流程可選「與上傳圖片互動」或「純風格轉換」</div>
+      <div class="flow">風格各角色獨立 · 新增可套用預設</div>
+    </button>
+    <button type="button" class="route-card" data-route="ip">
+      <span class="emoji">🤝</span>
+      <div class="name">IP 合照</div>
+      <div class="desc">前台路線：IP → 背景（含「無」）→ 輸出</div>
+      <div class="flow">管理：IP · 背景 · 輸出 · 外框</div>
+    </button>
+  </div>
+
+  <div class="empty-pick" id="empty-pick">請先選擇上方「經典」或「IP 合照」。</div>
+
+  <div class="panel" id="panel">
+    <div class="panel-head">
+      <h2 id="panel-title">管理</h2>
+      <span class="sub" id="panel-sub"></span>
+    </div>
+
+    <!-- 經典：中項目角色 -->
+    <div id="classic-mid" style="display:none;">
+      <div class="route-label">② 中項目 · 角色（可新增／屏蔽）</div>
+      <div class="toolbar" style="margin-bottom:.65rem;">
+        <button class="btn primary" id="btn-add-character">＋ 新增角色</button>
+      </div>
+      <div class="mid-grid" id="mid-grid"></div>
+      <p class="hint" id="mid-hint">點選一個角色後，再編輯其互動設定，或管理下方共用小項。</p>
+    </div>
+
+    <!-- IP：直接小項；經典選中角色後也用這塊 -->
+    <div class="sub-wrap" id="sub-wrap">
+      <div class="route-label" id="sub-label">③ 小項</div>
+      <div class="tabs" id="tabs"></div>
+      <div class="preview-box" id="interaction-preview" style="display:none;"></div>
+      <div class="toolbar" id="sub-toolbar">
+        <button class="btn primary" id="btn-add">＋ 新增</button>
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h2 id="modal-title">編輯</h2>
+    <div id="modal-fields"></div>
+    <div class="row">
+      <button class="btn" id="modal-cancel">取消</button>
+      <button class="btn primary" id="modal-save">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/catalog.js"></script>
+<script>
+/**
+ * 後台：大項 →（經典）中項目角色 → 小項；IP 仍為大項 → 小項。
+ * 玉器／輸出／外框為共用資料。
+ */
+/** @type {CatalogConfig} */
+let catalog = CatalogStore.loadCatalog();
+
+const IP_SECTIONS = [
+  { key: "ips", label: "IP" },
+  { key: "backgrounds", label: "背景" },
+  { key: "outputs", label: "輸出規格", shared: true },
+  { key: "frames", label: "外框", shared: true },
+];
+
+/**
+ * @param {object|null} ch
+ * @returns {{key:string,label:string,shared?:boolean}[]}
+ */
+function classicSectionsFor(ch) {
+  /** @type {{key:string,label:string,shared?:boolean}[]} */
+  const list = [{ key: "_character", label: "此角色設定" }];
+  if (CatalogStore.characterNeedsCeramics(ch)) {
+    list.push({ key: "ceramics", label: "玉器互動", shared: true });
+  }
+  list.push({ key: "_styles", label: "風格（此角色）" });
+  list.push({ key: "outputs", label: "輸出規格", shared: true });
+  list.push({ key: "frames", label: "外框", shared: true });
+  return list;
+}
+
+/** @type {string} */
+let activeRoute = "";
+/** @type {string} 經典中項目角色 id */
+let activeCharacterId = "";
+/** @type {string} */
+let activeKey = "";
+let editIndex = -1;
+
+const tabsEl = document.getElementById("tabs");
+const listEl = document.getElementById("list");
+const panelEl = document.getElementById("panel");
+const emptyPickEl = document.getElementById("empty-pick");
+const classicMidEl = document.getElementById("classic-mid");
+const subWrapEl = document.getElementById("sub-wrap");
+const previewEl = document.getElementById("interaction-preview");
+const btnAdd = document.getElementById("btn-add");
+
+/**
+ * @returns {object|null}
+ */
+function currentCharacter() {
+  return (catalog.characters || []).find((c) => c.id === activeCharacterId) || null;
+}
+
+/**
+ * @returns {void}
+ */
+function renderRouteCards() {
+  document.querySelectorAll(".route-card").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.route === activeRoute);
+  });
+}
+
+/**
+ * @returns {void}
+ */
+function syncPanelChrome() {
+  const hasRoute = !!activeRoute;
+  panelEl.classList.toggle("show", hasRoute);
+  emptyPickEl.style.display = hasRoute ? "none" : "block";
+  classicMidEl.style.display = activeRoute === "classic" ? "block" : "none";
+
+  if (activeRoute === "classic") {
+    document.getElementById("panel-title").textContent = "經典 · 中項目管理";
+    const ch = currentCharacter();
+    document.getElementById("panel-sub").textContent = ch
+      ? ch.flow === "style_only"
+        ? "純風格轉換：略過玉器；風格清單僅此角色"
+        : "與上傳圖片互動：玉器步驟＋角色專屬風格"
+      : "先選中項目角色";
+    subWrapEl.classList.toggle("show", !!activeCharacterId);
+    document.getElementById("sub-label").textContent = activeCharacterId
+      ? "③ 「" + ((ch && ch.name) || "") + "」的小項"
+      : "③ 小項";
+  } else if (activeRoute === "ip") {
+    document.getElementById("panel-title").textContent = "IP 合照 · 小項管理";
+    document.getElementById("panel-sub").textContent = "IP → 背景 → 輸出（生成後可套外框）";
+    subWrapEl.classList.add("show");
+    document.getElementById("sub-label").textContent = "② 小項";
+  } else {
+    subWrapEl.classList.remove("show");
+  }
+}
+
+/**
+ * @returns {void}
+ */
+function renderMidCharacters() {
+  const grid = document.getElementById("mid-grid");
+  grid.innerHTML = "";
+  (catalog.characters || []).forEach((ch, idx) => {
+    const card = document.createElement("div");
+    const on = ch.enabled !== false;
+    card.className =
+      "mid-card" +
+      (ch.id === activeCharacterId ? " active" : "") +
+      (on ? "" : " off");
+    const flowLabel = ch.flow === "style_only" ? "純風格轉換" : "與上傳圖片互動";
+    card.innerHTML = `
+      <div class="emoji">${ch.emoji || "·"}</div>
+      <div class="name">${ch.name || "(未命名)"}
+        <span class="badge ${on ? "on" : "off"}">${on ? "顯示" : "屏蔽"}</span>
+        <span class="badge shared">${flowLabel}</span>
+      </div>
+      <div class="desc">${(ch.desc || ch.prompt || "").slice(0, 72)}</div>
+      <div class="mid-actions">
+        <button type="button" class="btn" data-act="toggle">${on ? "屏蔽" : "顯示"}</button>
+        <button type="button" class="btn" data-act="edit">編輯</button>
+        <button type="button" class="btn danger" data-act="del">刪</button>
+      </div>`;
+    card.onclick = (e) => {
+      if (e.target.closest("[data-act]")) return;
+      activeCharacterId = ch.id;
+      activeKey = "_character";
+      renderMidCharacters();
+      syncPanelChrome();
+      // 切到純風格角色時，若還停在玉器分頁會自動被 renderTabs 校正
+      renderTabs();
+      renderList();
+    };
+    card.querySelector('[data-act="toggle"]').onclick = (e) => {
+      e.stopPropagation();
+      ch.enabled = ch.enabled === false;
+      persist();
+      renderMidCharacters();
+      if (ch.id === activeCharacterId) renderList();
+    };
+    card.querySelector('[data-act="edit"]').onclick = (e) => {
+      e.stopPropagation();
+      activeCharacterId = ch.id;
+      activeKey = "_character";
+      renderMidCharacters();
+      syncPanelChrome();
+      renderTabs();
+      openModal(idx, "characters");
+    };
+    card.querySelector('[data-act="del"]').onclick = (e) => {
+      e.stopPropagation();
+      if (!confirm("確定刪除角色「" + ch.name + "」？")) return;
+      catalog.characters.splice(idx, 1);
+      if (activeCharacterId === ch.id) activeCharacterId = "";
+      persist();
+      renderMidCharacters();
+      syncPanelChrome();
+      renderTabs();
+      renderList();
+    };
+    grid.appendChild(card);
+  });
+}
+
+/**
+ * @returns {{key:string,label:string,shared?:boolean}[]}
+ */
+function currentSections() {
+  if (activeRoute === "classic") return classicSectionsFor(currentCharacter());
+  if (activeRoute === "ip") return IP_SECTIONS;
+  return [];
+}
+
+/**
+ * @returns {void}
+ */
+function renderTabs() {
+  const sections = currentSections();
+  tabsEl.innerHTML = "";
+  if (activeRoute === "classic" && !activeCharacterId) return;
+  if (!sections.length) return;
+
+  if (!activeKey || !sections.some((s) => s.key === activeKey)) {
+    activeKey = sections[0].key;
+  }
+
+  sections.forEach((s) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "tab" + (s.key === activeKey ? " active " + activeRoute : "");
+    b.textContent = s.label + (s.shared ? "（共用）" : "");
+    b.onclick = () => {
+      activeKey = s.key;
+      renderTabs();
+      renderList();
+    };
+    tabsEl.appendChild(b);
+  });
+}
+
+/**
+ * @returns {void}
+ */
+function updateInteractionPreview() {
+  const ch = currentCharacter();
+  if (activeRoute !== "classic" || !ch || activeKey !== "ceramics") {
+    previewEl.style.display = "none";
+    return;
+  }
+  previewEl.style.display = "block";
+  previewEl.innerHTML =
+    "<strong>提示</strong>下列每件玉器顯示的是「" +
+    (ch.name || "") +
+    "」專用互動情境。請寫完整場景（地點、動作、物件樣貌），不要只寫「使用」。";
+}
+
+/**
+ * @returns {void}
+ */
+function renderList() {
+  updateInteractionPreview();
+
+  if (activeRoute === "classic" && !activeCharacterId) {
+    listEl.innerHTML = "";
+    btnAdd.style.display = "none";
+    return;
+  }
+
+  // 此角色設定：單卡編輯
+  if (activeKey === "_character") {
+    btnAdd.style.display = "none";
+    const ch = currentCharacter();
+    listEl.innerHTML = "";
+    if (!ch) {
+      listEl.innerHTML = '<p class="hint">請先選中項目角色。</p>';
+      return;
+    }
+    const idx = catalog.characters.findIndex((c) => c.id === ch.id);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="ph">${ch.emoji || "·"}</div>
+      <div>
+        <h3>${ch.name || "(未命名)"}
+          <span class="badge ${ch.enabled !== false ? "on" : "off"}">${ch.enabled !== false ? "顯示" : "屏蔽"}</span>
+        </h3>
+        <p><b>流程</b>：${ch.flow === "style_only" ? "純風格轉換" : "與上傳圖片互動"}</p>
+        <p style="margin-top:6px;"><b>角色 Prompt</b>：${(ch.prompt || "").slice(0, 160)}</p>
+        <p style="margin-top:6px;color:var(--c3);font-size:.68rem;font-weight:700;">
+          ${ch.flow === "style_only" ? "略過玉器；請到「風格（此角色）」新增（可選預設自動填入）。" : "玉器互動在「玉器互動」分頁；風格為角色專屬清單。"}
+        </p>
+        <div class="meta">id: ${ch.id}</div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-act="toggle">${ch.enabled !== false ? "屏蔽" : "顯示"}</button>
+        <button class="btn" data-act="edit">編輯</button>
+      </div>`;
+    card.querySelector('[data-act="toggle"]').onclick = () => {
+      ch.enabled = ch.enabled === false;
+      persist();
+      renderMidCharacters();
+      renderList();
+    };
+    card.querySelector('[data-act="edit"]').onclick = () => openModal(idx, "characters");
+    listEl.appendChild(card);
+    return;
+  }
+
+  const key = activeKey;
+  const ch = currentCharacter();
+  const isCharStyles = key === "_styles";
+  const items = isCharStyles
+    ? CatalogStore.getCharacterStyles(ch)
+    : catalog[key] || [];
+  const shared = !!(currentSections().find((s) => s.key === key && s.shared));
+  btnAdd.style.display = "inline-block";
+  listEl.innerHTML = "";
+  if (!items.length) {
+    listEl.innerHTML = '<p class="hint">尚無資料，請按「新增」。' +
+      (isCharStyles ? "（此清單只屬於目前角色）" : "") +
+      "</p>";
+    return;
+  }
+  items.forEach((item, idx) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const hasImg = !!item.src;
+    const left = hasImg
+      ? `<img src="${item.src}" alt="" onerror="this.style.opacity=.3">`
+      : `<div class="ph">${item.emoji || "·"}</div>`;
+    let bodyText = (item.prompt || item.desc || item.src || item.apiSize || "").toString();
+    if (key === "ceramics" && activeCharacterId) {
+      bodyText =
+        CatalogStore.getCeramicInteraction(item, activeCharacterId) ||
+        "（尚未為此角色寫互動情境）";
+    }
+    card.innerHTML = `
+      ${left}
+      <div>
+        <h3>${item.name || "(未命名)"}
+          <span class="badge ${item.enabled !== false ? "on" : "off"}">${item.enabled !== false ? "顯示" : "屏蔽"}</span>
+          ${shared ? '<span class="badge shared">共用</span>' : ""}
+          ${isCharStyles ? '<span class="badge shared">僅此角色</span>' : ""}
+          ${key === "ceramics" && activeCharacterId ? '<span class="badge shared">此角色互動</span>' : ""}
+        </h3>
+        <p>${bodyText.slice(0, 180)}</p>
+        <div class="meta">${item.id || ""} ${item.ratio ? "· " + item.ratio : ""} ${item.apiSize ? "· " + item.apiSize : ""}</div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-act="toggle">${item.enabled !== false ? "屏蔽" : "顯示"}</button>
+        <button class="btn" data-act="edit">編輯</button>
+        <button class="btn danger" data-act="del">刪除</button>
+      </div>`;
+    card.querySelector('[data-act="toggle"]').onclick = () => {
+      item.enabled = item.enabled === false;
+      persist();
+      renderList();
+    };
+    card.querySelector('[data-act="edit"]').onclick = () => openModal(idx, key);
+    card.querySelector('[data-act="del"]').onclick = () => {
+      if (!confirm("確定刪除「" + item.name + "」？" + (isCharStyles ? "（只刪此角色的風格）" : ""))) return;
+      if (isCharStyles) {
+        if (!ch.styles) ch.styles = [];
+        ch.styles.splice(idx, 1);
+      } else {
+        catalog[key].splice(idx, 1);
+      }
+      persist();
+      renderList();
+    };
+    listEl.appendChild(card);
+  });
+}
+
+/**
+ * @param {string} sectionKey
+ * @returns {Record<string, string>}
+ */
+function fieldsForSection(sectionKey) {
+  const ch = currentCharacter();
+  const chLabel = ch ? ch.name : "此角色";
+  const map = {
+    characters: {
+      name: "名稱",
+      emoji: "Emoji",
+      desc: "說明",
+      flow: "流程類型",
+      prompt: "角色 Prompt（風格轉換可寫簡短說明）",
+      enabled: "顯示（前台）",
+    },
+    ceramics: {
+      name: "名稱",
+      src: "圖片路徑",
+      interactionForCharacter:
+        "「" + chLabel + "」互動情境（請寫完整場景）",
+      enabled: "顯示",
+    },
+    _styles: { name: "名稱", emoji: "Emoji", prompt: "Prompt", allowText: "允許文字(ugly)", enabled: "顯示" },
+    styles: { name: "名稱", emoji: "Emoji", prompt: "Prompt", allowText: "允許文字(ugly)", enabled: "顯示" },
+    ips: { name: "名稱", src: "圖片路徑", prompt: "專屬 Prompt", enabled: "顯示" },
+    backgrounds: { name: "名稱", emoji: "Emoji", prompt: "Prompt（無則留空）", enabled: "顯示" },
+    frames: { name: "名稱", src: "PNG 路徑", enabled: "顯示" },
+    outputs: { name: "名稱", ratio: "比例(如4:3)", apiSize: "API尺寸(如1360x1024)", promptSuffix: "構圖附加 Prompt", enabled: "顯示" },
+  };
+  return map[sectionKey] || { name: "名稱", enabled: "顯示" };
+}
+
+/**
+ * @returns {void}
+ */
+function closeModal() {
+  document.getElementById("modal-bg").classList.remove("show");
+}
+
+/**
+ * @param {number} idx
+ * @param {string} [sectionKey]
+ * @returns {void}
+ */
+function openModal(idx, sectionKey) {
+  let storeKey = sectionKey || activeKey;
+  if (storeKey === "_character") storeKey = "characters";
+  const isCharStyles = storeKey === "_styles";
+  const ch = currentCharacter();
+
+  if (isCharStyles) {
+    if (!ch) {
+      alert("請先選中項目角色。");
+      return;
+    }
+    if (!Array.isArray(ch.styles)) ch.styles = CatalogStore.cloneStylePresets();
+  } else if (!storeKey || !Array.isArray(catalog[storeKey])) {
+    return;
+  }
+  if (storeKey === "ceramics" && !activeCharacterId) {
+    alert("請先選中項目角色，再編輯玉器互動。");
+    return;
+  }
+
+  editIndex = idx;
+  const fields = fieldsForSection(storeKey);
+  /** @type {any} */
+  let item;
+  if (isCharStyles) {
+    item = idx >= 0 ? { ...ch.styles[idx] } : { enabled: true };
+  } else {
+    item = idx >= 0 ? { ...catalog[storeKey][idx] } : { enabled: true };
+  }
+  if (storeKey === "characters") {
+    item.flow = item.flow === "style_only" ? "style_only" : "artifact";
+  }
+  if (storeKey === "ceramics") {
+    item.interactions = {
+      ...(item.interactions && typeof item.interactions === "object"
+        ? item.interactions
+        : {}),
+    };
+    item.interactionForCharacter =
+      item.interactions[activeCharacterId] || item.prompt || "";
+  }
+  document.getElementById("modal-title").textContent = idx >= 0 ? "編輯" : "新增";
+  const box = document.getElementById("modal-fields");
+  box.innerHTML = "";
+  Object.keys(fields).forEach((fkey) => {
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    const label = document.createElement("label");
+    label.textContent = fields[fkey];
+    wrap.appendChild(label);
+    let input;
+    if (fkey === "enabled" || fkey === "allowText") {
+      input = document.createElement("select");
+      input.innerHTML = '<option value="true">是</option><option value="false">否</option>';
+      input.value = item[fkey] === false ? "false" : "true";
+    } else if (fkey === "flow") {
+      input = document.createElement("select");
+      input.innerHTML =
+        '<option value="artifact">與上傳圖片互動</option><option value="style_only">純風格轉換</option>';
+      input.value = item.flow === "style_only" ? "style_only" : "artifact";
+    } else if (
+      fkey === "prompt" ||
+      fkey === "promptSuffix" ||
+      fkey === "interactionForCharacter"
+    ) {
+      input = document.createElement("textarea");
+      input.value = item[fkey] || "";
+      if (fkey === "interactionForCharacter") input.style.minHeight = "150px";
+    } else {
+      input = document.createElement("input");
+      input.value = item[fkey] || "";
+    }
+    input.dataset.key = fkey;
+    wrap.appendChild(input);
+    box.appendChild(wrap);
+  });
+
+  /** @type {string} 新增時選中的預設 id */
+  let pickedPresetId = "";
+
+  // 新增風格／玉器：預設內容下拉 → 自動填入欄位
+  if (idx < 0 && (isCharStyles || storeKey === "ceramics")) {
+    const presetWrap = document.createElement("div");
+    presetWrap.className = "field";
+    presetWrap.innerHTML = "<label>從預設填入</label>";
+    const presetSel = document.createElement("select");
+    presetSel.innerHTML = '<option value="">— 手動填寫 —</option>';
+    const presets = isCharStyles
+      ? CatalogStore.cloneStylePresets()
+      : CatalogStore.cloneCeramicPresets();
+    presets.forEach((p) => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = (p.emoji ? p.emoji + " " : "") + (p.name || p.id);
+      presetSel.appendChild(opt);
+    });
+    presetSel.onchange = () => {
+      pickedPresetId = presetSel.value || "";
+      const p = presets.find((x) => x.id === presetSel.value);
+      if (!p) return;
+      const setVal = (key, val) => {
+        const el = box.querySelector('[data-key="' + key + '"]');
+        if (el) el.value = val;
+      };
+      if (isCharStyles) {
+        setVal("name", p.name || "");
+        setVal("emoji", p.emoji || "");
+        setVal("prompt", p.prompt || "");
+        setVal("allowText", p.allowText ? "true" : "false");
+        setVal("enabled", p.enabled === false ? "false" : "true");
+      } else {
+        setVal("name", p.name || "");
+        setVal("src", p.src || "");
+        setVal("enabled", p.enabled === false ? "false" : "true");
+        const ix =
+          (p.interactions && activeCharacterId && p.interactions[activeCharacterId]) ||
+          "";
+        setVal("interactionForCharacter", ix);
+      }
+    };
+    presetWrap.appendChild(presetSel);
+    box.insertBefore(presetWrap, box.firstChild);
+  }
+
+  document.getElementById("modal-bg").classList.add("show");
+  document.getElementById("modal-save").onclick = () => {
+    /** @type {any} */
+    let next;
+    if (isCharStyles) {
+      next =
+        idx >= 0
+          ? { ...ch.styles[idx] }
+          : { id: CatalogStore.uid("sty"), enabled: true };
+    } else {
+      next =
+        idx >= 0
+          ? { ...catalog[storeKey][idx] }
+          : {
+              id: CatalogStore.uid(storeKey.slice(0, 3)),
+              enabled: true,
+              flow: "artifact",
+              styles: CatalogStore.cloneStylePresets(),
+            };
+    }
+    /** @type {string} */
+    let interactionText = "";
+    box.querySelectorAll("[data-key]").forEach((el) => {
+      const k = el.dataset.key;
+      if (k === "enabled" || k === "allowText") next[k] = el.value === "true";
+      else if (k === "interactionForCharacter") interactionText = el.value;
+      else next[k] = el.value;
+    });
+    if (!next.name) {
+      alert("請填名稱");
+      return;
+    }
+    if (storeKey === "characters") {
+      next = CatalogStore.normalizeCharacter(next, catalog.styles);
+    }
+    if (storeKey === "ceramics") {
+      const preset =
+        idx < 0 && pickedPresetId
+          ? CatalogStore.cloneCeramicPresets().find((x) => x.id === pickedPresetId)
+          : null;
+      next.interactions = {
+        ...(preset && preset.interactions ? preset.interactions : {}),
+        ...(next.interactions && typeof next.interactions === "object"
+          ? next.interactions
+          : {}),
+      };
+      if (activeCharacterId) {
+        next.interactions[activeCharacterId] = interactionText;
+      }
+      // 新增且選預設、尚未存在同 id → 沿用預設 id，避免重複亂碼
+      if (
+        idx < 0 &&
+        preset &&
+        !(catalog.ceramics || []).some((c) => c.id === preset.id)
+      ) {
+        next.id = preset.id;
+      }
+      delete next.interactionForCharacter;
+      delete next.prompt;
+      next = CatalogStore.normalizeCeramic(next);
+    }
+    if (isCharStyles) {
+      if (!ch.styles) ch.styles = [];
+      if (idx >= 0) ch.styles[idx] = next;
+      else ch.styles.push(next);
+    } else if (idx >= 0) {
+      catalog[storeKey][idx] = next;
+    } else {
+      catalog[storeKey].push(next);
+    }
+    if (storeKey === "characters" && idx < 0) {
+      activeCharacterId = next.id;
+    }
+    persist();
+    closeModal();
+    if (activeRoute === "classic") renderMidCharacters();
+    syncPanelChrome();
+    renderTabs();
+    renderList();
+  };
+}
+
+/**
+ * @returns {void}
+ */
+function persist() {
+  CatalogStore.saveCatalog(catalog);
+}
+
+/**
+ * @param {string} routeId
+ * @returns {void}
+ */
+function selectRoute(routeId) {
+  activeRoute = routeId;
+  activeCharacterId = "";
+  activeKey = routeId === "ip" ? "ips" : "_character";
+  renderRouteCards();
+  syncPanelChrome();
+  if (routeId === "classic") {
+    renderMidCharacters();
+    renderTabs();
+    renderList();
+  } else {
+    renderTabs();
+    renderList();
+  }
+}
+
+document.querySelectorAll(".route-card").forEach((btn) => {
+  btn.onclick = () => selectRoute(btn.dataset.route || "");
+});
+
+document.getElementById("modal-cancel").onclick = closeModal;
+document.getElementById("btn-add-character").onclick = () => openModal(-1, "characters");
+btnAdd.onclick = () => {
+  if (activeKey && activeKey !== "_character") openModal(-1, activeKey);
+};
+
+document.getElementById("btn-reset").onclick = () => {
+  if (!confirm("還原成系統預設？（會覆蓋目前後台資料）")) return;
+  catalog = CatalogStore.resetCatalog();
+  activeCharacterId = "";
+  if (activeRoute === "classic") {
+    renderMidCharacters();
+    syncPanelChrome();
+    renderTabs();
+    renderList();
+  } else if (activeRoute === "ip") {
+    renderTabs();
+    renderList();
+  }
+};
+document.getElementById("btn-export").onclick = () => {
+  const blob = new Blob([JSON.stringify(catalog, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "style_wizard_catalog.json";
+  a.click();
+};
+document.getElementById("btn-import").onclick = () => document.getElementById("import-file").click();
+document.getElementById("import-file").onchange = (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      catalog = CatalogStore.mergeWithDefault(JSON.parse(String(reader.result || "{}")));
+      persist();
+      activeCharacterId = "";
+      if (activeRoute) selectRoute(activeRoute);
+      alert("匯入成功");
+    } catch (err) {
+      alert("匯入失敗：" + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+};
+
+syncPanelChrome();
+</script>
+</body>
+</html>
